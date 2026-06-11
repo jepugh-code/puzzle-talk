@@ -4,7 +4,7 @@
  * used by touch (setMark, undo, requestHint) — engine and UI stay decoupled.
  */
 
-import { generatePuzzle, clueText, deriveHint, itemPhrase } from './generator.js';
+import { generatePuzzle, clueText, deriveHint, doesPhrase } from './generator.js';
 import { renderGrid, showPage, flashCell, markKey, getMark, categoryPairs } from './grid.js';
 import { saveGame, loadGame, clearGame, requestPersistence, getSetting, setSetting } from './storage.js';
 
@@ -99,9 +99,8 @@ export function revealOneAnswer() {
       const j = puzzle.solution[e][c];
       if (getMark(marks, 0, c, e, j) !== 2) {
         const nameItem = puzzle.theme.categories[0].items[e];
-        const item = puzzle.theme.categories[c].items[j];
         setMark(0, c, e, j, 2);
-        setMessage(`Here's one: ${nameItem} goes with ${itemPhrase(item, puzzle.theme.categories[c])}.`);
+        setMessage(`Here's one: ${nameItem} ${doesPhrase(puzzle.theme, c, j)}.`);
         return;
       }
     }
@@ -209,7 +208,7 @@ function startPuzzle(p, restoredMarks = null, restoredUndo = null) {
   gridApi = renderGrid($('grid'), p.theme, marks, cycleMark);
   updatePaging();
 
-  setMessage(`Here's your puzzle: ${p.theme.name}. Read the clues and tap the grid — ✗ means "no", ✓ means "yes". Tap a square to change it.`);
+  setMessage(p.theme.intro);
   showScreen('play');
   autosave();
 }

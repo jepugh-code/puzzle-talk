@@ -189,42 +189,42 @@ function pruneClues(rng, clues, numCategories, numItems) {
 // ---------------------------------------------------------------------------
 
 /**
- * Items appear in clues exactly as they appear on the grid ("Soccer",
- * "House 1", "Monday") so the player can match them visually. Categories
- * flagged `article: true` (pets) read as "the dog" instead.
+ * Prose clue rendering. Items appear exactly as on the grid ("Rose",
+ * "House 3") inside per-category verb templates from themes.js, e.g.
+ * "The member who grows the Rose doesn't drink Earl Grey."
  */
-export function itemPhrase(item, category = null) {
-  if (category && category.article) return `the ${item.toLowerCase()}`;
-  return item;
+export function doesPhrase(theme, cat, itemIdx) {
+  const c = theme.categories[cat];
+  return c.does.replace('{}', c.items[itemIdx]);
+}
+
+export function notPhrase(theme, cat, itemIdx) {
+  const c = theme.categories[cat];
+  return c.not.replace('{}', c.items[itemIdx]);
 }
 
 export function clueText(clue, theme) {
-  const cats = theme.categories;
-  const phrase = (c, i) => itemPhrase(cats[c].items[i], cats[c]);
-  const plain = (c, i) => cats[c].items[i];
+  const name = (i) => theme.categories[0].items[i];
+  const who = theme.who; // "member", "neighbor", ...
+  const does = (c, i) => doesPhrase(theme, c, i);
+  const not = (c, i) => notPhrase(theme, c, i);
 
   switch (clue.type) {
     case 'direct_pos':
-      return `${plain(0, clue.nameIdx)} goes with ${phrase(clue.cat, clue.itemIdx)}.`;
+      return `${name(clue.nameIdx)} ${does(clue.cat, clue.itemIdx)}.`;
     case 'direct_neg':
-      return `${plain(0, clue.nameIdx)} does not go with ${phrase(clue.cat, clue.itemIdx)}.`;
+      return `${name(clue.nameIdx)} ${not(clue.cat, clue.itemIdx)}.`;
     case 'link_pos':
-      return `${capitalize(phrase(clue.catA, clue.itemA))} and ${phrase(clue.catB, clue.itemB)} go together.`;
+      return `The ${who} who ${does(clue.catA, clue.itemA)} also ${does(clue.catB, clue.itemB)}.`;
     case 'link_neg':
-      return `${capitalize(phrase(clue.catA, clue.itemA))} and ${phrase(clue.catB, clue.itemB)} do not go together.`;
+      return `The ${who} who ${does(clue.catA, clue.itemA)} ${not(clue.catB, clue.itemB)}.`;
     case 'either_or':
-      return `${capitalize(phrase(clue.catA, clue.itemA))} goes with either ${phrase(clue.catB, clue.itemB)} or ${phrase(clue.catB, clue.itemC)}.`;
-    case 'ordering': {
-      const label = cats[clue.ordCat].label.toLowerCase();
-      return `${capitalize(phrase(clue.catA, clue.itemA))} comes before ${phrase(clue.catA, clue.itemB)} in ${label}.`;
-    }
+      return `The ${who} who ${does(clue.catA, clue.itemA)} either ${does(clue.catB, clue.itemB)} or ${does(clue.catB, clue.itemC)}.`;
+    case 'ordering':
+      return `The ${who} who ${does(clue.catA, clue.itemA)} ${theme.categories[clue.ordCat].before} the ${who} who ${does(clue.catA, clue.itemB)}.`;
     default:
       return '(unknown clue type)';
   }
-}
-
-function capitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 // ---------------------------------------------------------------------------
