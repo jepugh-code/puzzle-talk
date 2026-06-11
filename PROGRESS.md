@@ -2,7 +2,27 @@
 
 _Last updated: 2026-06-10_
 
-## Status: Milestone 3 COMPLETE (pending user device testing) — next: Milestone 4 (voice input)
+## Status: Milestone 4 COMPLETE (pending user device testing) — next: Milestone 5 (polish & ship)
+
+## Done (Milestone 4 — voice input)
+
+- `js/commands.js`: DOM-free utterance parser. Normalize (lowercase, strip
+  punctuation, number-words→digits, n't→not), control-intent patterns
+  (undo "wait, go back" / hint "I'm stuck" / reveal / help "I don't
+  understand" / status / check "am I done" / read clues / read clue N /
+  next clue / repeat / new puzzle / yes / no), then deduction parsing:
+  vocabulary matching cascade exact→prefix→edit-distance-1→bigram-Dice.
+  30 tests in tests/commands.test.mjs (incl. recognizer-mishear cases).
+- `js/speech.js`: listenOnce() push-to-talk (fresh recognition instance per
+  use, cancels TTS first so the app doesn't hear itself).
+- `js/app.js`: big round Talk button (pulses red while listening);
+  confirm-when-unsure flow ("Did you mean…? Say yes or no") for fuzzy
+  matches, overwrites, and contradictions; status summary; check-my-work
+  (gentle); voice "new puzzle" requires yes/no confirm; mic-permission and
+  no-speech error messages; `window.__handleUtterance` debug hook.
+- Verified in preview end-to-end: solved a full puzzle by voice alone,
+  mishears trigger confirmation, contradictions flagged gently, completion
+  spoken. No console errors. 53/53 tests total.
 
 ## Done (Milestone 3)
 
