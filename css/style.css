@@ -76,7 +76,7 @@ button:active { transform: scale(0.97); }
   max-width: 75rem;
   margin: 0 auto;
   padding: 0.75rem;
-  padding-bottom: 7rem; /* room for action bar */
+  padding-bottom: 12rem; /* room for action bar incl. big Talk button */
 }
 
 #puzzle-title {
@@ -178,14 +178,39 @@ td.cell { padding: 2px; }
   right: 0;
   background: var(--paper);
   border-top: var(--border);
+  padding: 0.5rem 0.75rem;
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+}
+#actions-main {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  align-items: center;
+}
+#actions-extra {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
-  padding: 0.75rem;
-  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
   flex-wrap: wrap;
+  margin-top: 0.4rem;
 }
 #actions button { font-size: 1.1rem; }
+
+#btn-talk {
+  width: 6rem;       /* ~96px — the one big obvious button */
+  height: 6rem;
+  border-radius: 50%;
+  font-size: 2.5rem;
+  background: var(--blue);
+  color: #fff;
+  border: 4px solid var(--ink);
+  flex-shrink: 0;
+}
+#btn-talk.listening {
+  background: var(--red);
+  animation: pulse 1s infinite;
+}
+@keyframes pulse { 50% { transform: scale(1.07); } }
 
 /* ---------- Done screen ---------- */
 

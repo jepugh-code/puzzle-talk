@@ -66,3 +66,68 @@ export async function speakSequence(texts) {
 export function stopSpeaking() {
   if (speechAvailable()) speechSynthesis.cancel();
 }
+
+// ---------------------------------------------------------------------------
+// Speech recognition (push-to-talk) — verified working on target devices
+// in Milestone 0 (iPhone/iPad/Mac, Safari 26.5, webkit prefix).
+// ---------------------------------------------------------------------------
+
+const SR = typeof window !== 'undefined'
+  ? (window.SpeechRecognition || window.webkitSpeechRecognition)
+  : null;
+
+let activeRec = null;
+
+export function recognitionAvailable() {
+  return !!SR;
+}
+
+export function isListening() {
+  return !!activeRec;
+}
+
+/**
+ * Listen for one utterance (push-to-talk). Fresh instance per call —
+ * Safari instances go stale. Speech output is stopped first so the app
+ * doesn't hear itself.
+ *
+ * callbacks: { onStart, onResult(text), onEnd, onError(errName) }
+ */
+export function listenOnce({ onStart, onResult, onEnd, onError } = {}) {
+  if (!SR) { onError && onError('unsupported'); return; }
+  if (activeRec) { try { activeRec.stop(); } catch {} }
+  stopSpeaking();
+
+  const rec = new SR();
+  activeRec = rec;
+  rec.lang = 'en-US';
+  rec.continuous = false;
+  rec.interimResults = false;
+  rec.maxAlternatives = 3;
+
+  let gotResult = false;
+
+  rec.onstart = () => { onStart && onStart(); };
+  rec.onresult = (e) => {
+    const res = e.results[e.results.length - 1];
+    if (res && res.isFinal && res[0]) {
+      gotResult = true;
+      onResult && onResult(res[0].transcript.trim());
+    }
+  };
+  rec.onerror = (e) => {
+    activeRec = null;
+    onError && onError(e.error || 'unknown');
+  };
+  rec.onend = () => {
+    activeRec = null;
+    onEnd && onEnd(gotResult);
+  };
+
+  try { rec.start(); }
+  catch (err) { activeRec = null; onError && onError(err.message); }
+}
+
+export function stopListening() {
+  if (activeRec) { try { activeRec.stop(); } catch {} }
+}
