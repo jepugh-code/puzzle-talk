@@ -7,6 +7,7 @@
 import { generatePuzzle, clueText, deriveHint, doesPhrase } from './generator.js';
 import { renderGrid, showPage, flashCell, markKey, getMark, categoryPairs } from './grid.js';
 import { saveGame, loadGame, clearGame, requestPersistence, getSetting, setSetting } from './storage.js';
+import { primeSpeech, speak, speakSequence, stopSpeaking, setVoiceEnabled, voiceEnabled, speechAvailable } from './speech.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -139,8 +140,10 @@ function checkCompletion() {
 }
 
 async function finishPuzzle() {
-  $('done-text').textContent = `Wonderful! You solved the ${puzzle.theme.name} puzzle. 🎉`;
+  const text = `Wonderful! You solved the ${puzzle.theme.name} puzzle.`;
+  $('done-text').textContent = text + ' 🎉';
   $('done-id').textContent = `Puzzle ${puzzle.id}`;
+  speak(text);
   await clearGame();
   showScreen('done');
 }
@@ -149,8 +152,18 @@ async function finishPuzzle() {
 // Messages & clue highlighting
 // ---------------------------------------------------------------------------
 
-function setMessage(text) {
+/** Show a message on screen and (unless silent) speak it aloud. */
+function setMessage(text, { silent = false } = {}) {
   $('message').textContent = text;
+  if (!silent) speak(text);
+}
+
+function readCluesAloud() {
+  const texts = [puzzle.theme.intro];
+  puzzle.clues.forEach((clue, i) => {
+    texts.push(`Clue ${i + 1}. ${clueText(clue, puzzle.theme)}`);
+  });
+  speakSequence(texts);
 }
 
 function highlightClue(index, secondary = false) {
@@ -252,14 +265,33 @@ function updatePaging() {
 async function init() {
   requestPersistence();
 
-  $('btn-easy').addEventListener('click', () => newPuzzle('easy'));
-  $('btn-medium').addEventListener('click', () => newPuzzle('medium'));
-  $('btn-hard').addEventListener('click', () => newPuzzle('hard'));
+  // Voice on/off (persisted). Priming must happen inside a user gesture (iOS).
+  setVoiceEnabled(getSetting('voice', true) && speechAvailable());
+  const voiceBtn = $('btn-voice');
+  function refreshVoiceBtn() {
+    voiceBtn.textContent = voiceEnabled() ? 'Voice: on' : 'Voice: off';
+    voiceBtn.setAttribute('aria-pressed', String(voiceEnabled()));
+  }
+  refreshVoiceBtn();
+  voiceBtn.addEventListener('click', () => {
+    primeSpeech();
+    const on = !voiceEnabled();
+    setVoiceEnabled(on && speechAvailable());
+    setSetting('voice', on);
+    refreshVoiceBtn();
+    if (voiceEnabled()) speak('Voice is on.');
+  });
 
+  $('btn-easy').addEventListener('click', () => { primeSpeech(); newPuzzle('easy'); });
+  $('btn-medium').addEventListener('click', () => { primeSpeech(); newPuzzle('medium'); });
+  $('btn-hard').addEventListener('click', () => { primeSpeech(); newPuzzle('hard'); });
+
+  $('btn-read').addEventListener('click', () => { primeSpeech(); readCluesAloud(); });
   $('btn-undo').addEventListener('click', undo);
   $('btn-hint').addEventListener('click', requestHint);
   $('btn-reveal').addEventListener('click', revealOneAnswer);
   $('btn-quit').addEventListener('click', async () => {
+    stopSpeaking();
     await clearGame();
     showScreen('start');
   });
