@@ -54,6 +54,10 @@ _Last updated: 2026-06-10_
 
 ## Decisions log
 
+- 2026-06-10: Prose-style puzzles (user request, Daydream Puzzles style): themes
+  carry a story intro + per-category verb templates (does/not/before); clueText
+  renders natural sentences. No LLM — curated templates only.
+
 - 2026-06-10: localStorage→IndexedDB as sole game-state store; GitHub Pages
   hosting; vanilla JS no build step; curated themes, no LLM; completion
   returns to start screen; milestone 0 inserted before engine work.
