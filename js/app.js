@@ -43,8 +43,27 @@ export function setMark(a, b, i, j, value) {
   const key = markKey(a, b, i, j);
   const prev = marks.get(key) || 0;
   if (prev === value) return;
-  undoStack.push({ key, prev, next: value });
+
+  // One undo group: the mark itself plus any automatic crosses.
+  const group = [{ key, prev, next: value }];
   if (value === 0) marks.delete(key); else marks.set(key, value);
+
+  // A ✓ crosses out the rest of its row and column in this sub-grid
+  // (classic elimination-grid behavior).
+  if (value === 2) {
+    for (let k = 0; k < puzzle.numItems; k++) {
+      if (k !== j) {
+        const rk = markKey(a, b, i, k);
+        if (!(marks.get(rk) || 0)) { group.push({ key: rk, prev: 0, next: 1 }); marks.set(rk, 1); }
+      }
+      if (k !== i) {
+        const ck = markKey(a, b, k, j);
+        if (!(marks.get(ck) || 0)) { group.push({ key: ck, prev: 0, next: 1 }); marks.set(ck, 1); }
+      }
+    }
+  }
+
+  undoStack.push(group);
   gridApi.refresh(marks);
   flashCell($('grid'), a, b, i, j);
   autosave();
@@ -52,9 +71,11 @@ export function setMark(a, b, i, j, value) {
 }
 
 export function undo() {
-  const last = undoStack.pop();
-  if (!last) { setMessage("Nothing to undo."); return; }
-  if (last.prev === 0) marks.delete(last.key); else marks.set(last.key, last.prev);
+  const group = undoStack.pop();
+  if (!group) { setMessage("Nothing to undo."); return; }
+  for (const { key, prev } of group) {
+    if (prev === 0) marks.delete(key); else marks.set(key, prev);
+  }
   gridApi.refresh(marks);
   setMessage("Okay, I took that back.");
   autosave();
@@ -424,7 +445,8 @@ function autosave() {
 function startPuzzle(p, restoredMarks = null, restoredUndo = null) {
   puzzle = p;
   marks = new Map(restoredMarks || []);
-  undoStack = restoredUndo || [];
+  // Undo entries are groups (arrays); wrap any single entries from old saves.
+  undoStack = (restoredUndo || []).map(e => (Array.isArray(e) ? e : [e]));
   solvedAnnounced = false;
   currentPage = 0;
 
