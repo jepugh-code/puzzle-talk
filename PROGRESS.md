@@ -2,7 +2,18 @@
 
 _Last updated: 2026-06-10_
 
-## Status: Milestone 2 COMPLETE (pending user device testing) — next: Milestone 3 (voice output)
+## Status: Milestone 3 COMPLETE (pending user device testing) — next: Milestone 4 (voice input)
+
+## Done (Milestone 3)
+
+- `js/speech.js`: SpeechSynthesis wrapper — gesture priming (iOS), speak(),
+  speakSequence() for intro+clues, stopSpeaking, enable/disable
+- All `setMessage` text is spoken aloud AND shown on screen (silent option exists)
+- "🔊 Read clues" button reads story intro + numbered clues in order
+- "Voice: on/off" toggle, persisted in localStorage settings
+- Completion congratulations spoken; speech cancelled on quit/new puzzle
+- Verified in preview via speechSynthesis.speak interception: priming utterance,
+  intro on start, hint speech, clue sequence, mute suppresses speech but keeps text
 
 ## Done
 
