@@ -173,19 +173,20 @@ test('deriveHint returns a single-clue hint for easy puzzle (fully open board)',
   assert.ok(['single', 'pair', 'solved'].includes(hint.type));
 });
 
-test('deriveHint returns solved when board is complete', () => {
+test('deriveHint returns solved when player board is complete', () => {
   const puzzle = generatePuzzle({ difficulty: 'easy', seed: 0x1234 });
   assert.ok(puzzle);
-  // Apply all clues to get solved state, then ask for hint
-  const hint = deriveHint(puzzle.clues, puzzle.numCategories, puzzle.numItems);
-  // With all clues applied and board solved, type should be 'solved'
-  const state = createState(puzzle.numCategories, puzzle.numItems);
-  propagate(state, puzzle.clues);
-  if (isSolved(state)) {
-    assert.equal(hint.type, 'solved');
-  } else {
-    assert.ok(['single', 'pair'].includes(hint.type));
-  }
+  // Pass all puzzle clues as the player's marks → board fully solved
+  const hint = deriveHint(puzzle.clues, puzzle.numCategories, puzzle.numItems, puzzle.clues);
+  assert.equal(hint.type, 'solved');
+});
+
+test('deriveHint respects player marks (partial board)', () => {
+  const puzzle = generatePuzzle({ difficulty: 'easy', seed: 0x1234 });
+  assert.ok(puzzle);
+  // Empty board → should suggest a single clue that fires
+  const hint = deriveHint(puzzle.clues, puzzle.numCategories, puzzle.numItems, []);
+  assert.ok(['single', 'pair'].includes(hint.type));
 });
 
 // ---------------------------------------------------------------------------

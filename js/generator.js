@@ -9,7 +9,7 @@
  */
 
 import {
-  createState, cloneState, propagate,
+  createState, cloneState, applyClue, propagate,
   isSolved, countSolutions, getCell,
 } from './solver.js';
 import { getTheme, themeCount } from './themes.js';
@@ -188,37 +188,58 @@ function pruneClues(rng, clues, numCategories, numItems) {
 // Clue text rendering
 // ---------------------------------------------------------------------------
 
+/**
+ * Items appear in clues exactly as they appear on the grid ("Soccer",
+ * "House 1", "Monday") so the player can match them visually. Categories
+ * flagged `article: true` (pets) read as "the dog" instead.
+ */
+export function itemPhrase(item, category = null) {
+  if (category && category.article) return `the ${item.toLowerCase()}`;
+  return item;
+}
+
 export function clueText(clue, theme) {
   const cats = theme.categories;
-  const name = (c, i) => cats[c].items[i];
+  const phrase = (c, i) => itemPhrase(cats[c].items[i], cats[c]);
+  const plain = (c, i) => cats[c].items[i];
 
   switch (clue.type) {
     case 'direct_pos':
-      return `${name(0, clue.nameIdx)} has the ${name(clue.cat, clue.itemIdx).toLowerCase()}.`;
+      return `${plain(0, clue.nameIdx)} goes with ${phrase(clue.cat, clue.itemIdx)}.`;
     case 'direct_neg':
-      return `${name(0, clue.nameIdx)} does not have the ${name(clue.cat, clue.itemIdx).toLowerCase()}.`;
+      return `${plain(0, clue.nameIdx)} does not go with ${phrase(clue.cat, clue.itemIdx)}.`;
     case 'link_pos':
-      return `The ${name(clue.catA, clue.itemA).toLowerCase()} and the ${name(clue.catB, clue.itemB).toLowerCase()} belong to the same person.`;
+      return `${capitalize(phrase(clue.catA, clue.itemA))} and ${phrase(clue.catB, clue.itemB)} go together.`;
     case 'link_neg':
-      return `The ${name(clue.catA, clue.itemA).toLowerCase()} and the ${name(clue.catB, clue.itemB).toLowerCase()} do not belong to the same person.`;
+      return `${capitalize(phrase(clue.catA, clue.itemA))} and ${phrase(clue.catB, clue.itemB)} do not go together.`;
     case 'either_or':
-      return `${name(clue.catA, clue.itemA)} belongs to either the person with the ${name(clue.catB, clue.itemB).toLowerCase()} or the person with the ${name(clue.catB, clue.itemC).toLowerCase()}.`;
+      return `${capitalize(phrase(clue.catA, clue.itemA))} goes with either ${phrase(clue.catB, clue.itemB)} or ${phrase(clue.catB, clue.itemC)}.`;
     case 'ordering': {
       const label = cats[clue.ordCat].label.toLowerCase();
-      return `${name(clue.catA, clue.itemA)} comes before ${name(clue.catA, clue.itemB)} in ${label}.`;
+      return `${capitalize(phrase(clue.catA, clue.itemA))} comes before ${phrase(clue.catA, clue.itemB)} in ${label}.`;
     }
     default:
       return '(unknown clue type)';
   }
 }
 
+function capitalize(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 // ---------------------------------------------------------------------------
 // Hint derivation — find clues that together unlock a new deduction
 // ---------------------------------------------------------------------------
 
-export function deriveHint(clues, numCategories, numItems) {
+/**
+ * Derive a hint given the puzzle clues and (optionally) the player's current
+ * marks expressed as clue objects (link_pos / link_neg / direct_*).
+ * The hint is computed from the player's board, not the fully-propagated one,
+ * so it points at what the *player* can deduce next.
+ */
+export function deriveHint(clues, numCategories, numItems, markClues = []) {
   const state = createState(numCategories, numItems);
-  propagate(state, clues);
+  propagate(state, markClues);
   if (isSolved(state)) return { type: 'solved' };
 
   // Try each single clue — if it fires (changes state), return it as hint.

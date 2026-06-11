@@ -24,7 +24,7 @@ export const THEMES = [
     name: "Grandkids",
     categories: [
       { label: "Grandchild", items: ["Anna", "Bobby", "Carla", "Danny", "Emma"] },
-      { label: "Pet",        items: ["Dog", "Cat", "Bird", "Fish", "Rabbit"] },
+      { label: "Pet",        items: ["Dog", "Cat", "Bird", "Fish", "Rabbit"], article: true },
       { label: "Grade",      items: ["1st", "2nd", "3rd", "4th", "5th"], ordinal: true },
       { label: "Hobby",      items: ["Reading", "Drawing", "Soccer", "Piano", "Cooking"] },
       { label: "Snack",      items: ["Apple", "Crackers", "Yogurt", "Grapes", "Cheese"] },
@@ -54,7 +54,7 @@ export const THEMES = [
     name: "Street Neighbors",
     categories: [
       { label: "Neighbor",  items: ["Alice", "Ben", "Carol", "Dave", "Ellen"] },
-      { label: "Pet",       items: ["Dog", "Cat", "Bird", "Fish", "Hamster"] },
+      { label: "Pet",       items: ["Dog", "Cat", "Bird", "Fish", "Hamster"], article: true },
       { label: "House",     items: ["House 1", "House 2", "House 3", "House 4", "House 5"], ordinal: true },
       { label: "Color",     items: ["Red", "Blue", "Yellow", "Green", "White"] },
       { label: "Drink",     items: ["Coffee", "Tea", "Milk", "Juice", "Water"] },
@@ -97,6 +97,7 @@ export function getTheme(themeIndex, numCategories, numItems) {
       label: c.label,
       items: c.items.slice(0, numItems),
       ordinal: !!c.ordinal,
+      article: !!c.article,
     })),
   };
 }

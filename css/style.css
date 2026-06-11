@@ -1,0 +1,225 @@
+/* Puzzle Talk — high-contrast, large-type, elder-friendly styles */
+
+:root {
+  --ink: #1a1a2e;
+  --paper: #fdf6e3;
+  --card: #ffffff;
+  --blue: #1d4ed8;
+  --blue-dark: #1e40af;
+  --red: #b91c1c;
+  --green: #15803d;
+  --yellow: #fef08a;
+  --border: 2px solid var(--ink);
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 100%; } /* respect user/browser text size */
+
+body {
+  margin: 0;
+  font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
+  font-size: 1.25rem;          /* ≥20px body text */
+  line-height: 1.5;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.hidden { display: none !important; }
+
+button {
+  font-family: inherit;
+  font-size: 1.25rem;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 0.75rem;
+  border: var(--border);
+  background: var(--card);
+  color: var(--ink);
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+}
+button:active { transform: scale(0.97); }
+
+/* ---------- Start screen ---------- */
+
+#screen-start {
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+#screen-start h1 { font-size: 2rem; margin-bottom: 0.25rem; }
+#screen-start p { font-size: 1.25rem; }
+
+.difficulty-btn {
+  display: block;
+  width: 100%;
+  margin: 1rem 0;
+  padding: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: var(--blue);
+  color: #fff;
+  border: 3px solid var(--ink);
+}
+.difficulty-btn small {
+  display: block;
+  font-size: 1rem;
+  font-weight: normal;
+  margin-top: 0.25rem;
+}
+
+/* ---------- Play screen ---------- */
+
+#screen-play {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 0.75rem;
+  padding-bottom: 7rem; /* room for action bar */
+}
+
+#puzzle-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0.25rem 0;
+}
+
+#message {
+  background: var(--card);
+  border: var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 1.3rem;
+  min-height: 3.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Clues */
+#clues {
+  font-size: 1.3rem;
+  background: var(--card);
+  border: var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  margin: 0 0 1rem 0;
+}
+#clues li { margin: 0.5rem 0; }
+.clue-highlight { background: var(--yellow); border-radius: 0.25rem; }
+
+/* Grid */
+#grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.subgrid {
+  background: var(--card);
+  border: var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+.subgrid-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.hidden-page { display: none; }
+
+table.elim { border-collapse: collapse; }
+table.elim th {
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.3rem;
+  max-width: 6rem;
+  word-wrap: break-word;
+}
+table.elim thead th {
+  vertical-align: bottom;
+  text-align: center;
+}
+table.elim tbody th { text-align: right; }
+
+td.cell { padding: 2px; }
+
+.cellbtn {
+  width: 3.25rem;   /* ≥44px */
+  height: 3.25rem;
+  font-size: 1.75rem;
+  font-weight: bold;
+  border: 2px solid var(--ink);
+  border-radius: 0.5rem;
+  background: var(--card);
+  padding: 0;
+}
+.cellbtn.no  { color: var(--red); background: #fee2e2; }
+.cellbtn.yes { color: var(--green); background: #dcfce7; }
+.cellbtn.flash { outline: 5px solid var(--blue); outline-offset: 2px; }
+
+/* Pager (phone) */
+#pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+#page-label { font-size: 1.1rem; font-weight: bold; text-align: center; }
+#btn-prev, #btn-next { font-size: 1.5rem; padding: 0.5rem 1rem; }
+
+/* Action bar */
+#actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border-top: var(--border);
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0.75rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  flex-wrap: wrap;
+}
+#actions button { font-size: 1.1rem; }
+
+/* ---------- Done screen ---------- */
+
+#screen-done {
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+#done-text { font-size: 1.75rem; font-weight: bold; }
+#done-id { font-size: 0.9rem; color: #666; margin: 1rem 0 2rem; }
+#btn-done-home {
+  font-size: 1.5rem;
+  padding: 1rem 2rem;
+  background: var(--blue);
+  color: #fff;
+}
+
+/* ---------- Wide layout (iPad / Mac) ---------- */
+
+@media (min-width: 701px) {
+  #screen-play {
+    display: grid;
+    grid-template-columns: 1fr 24rem;
+    grid-template-areas:
+      "title  title"
+      "grid   message"
+      "grid   clues";
+    gap: 0 1.25rem;
+    align-items: start;
+  }
+  #puzzle-title { grid-area: title; }
+  #grid { grid-area: grid; justify-content: flex-start; align-content: start; }
+  #message { grid-area: message; }
+  #clues { grid-area: clues; }
+  #pager { display: none; }
+}
