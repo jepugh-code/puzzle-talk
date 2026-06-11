@@ -2,7 +2,7 @@
 
 _Last updated: 2026-06-10_
 
-## Status: Milestone 1 COMPLETE — ready to begin Milestone 2
+## Status: Milestone 2 COMPLETE (pending user device testing) — next: Milestone 3 (voice output)
 
 ## Done
 
@@ -35,14 +35,22 @@ _Last updated: 2026-06-10_
 - **Medium 4×4**: pruned clues must include ≥3 non-name link clues; direct_neg ≤6
 - **Hard 4×5**: pruned clues must include ≥5 non-name link clues + ≥1 either_or or ordering clue
 
+## Done (Milestone 2)
+
+- Touch-only playable app, deployed to GitHub Pages (pushed 2026-06-10):
+  - `index.html`, `css/style.css`: start (3 big difficulty buttons) / play / done screens
+  - `js/grid.js`: elimination sub-grids, tap-to-cycle blank→✗→✓, phone paging (◀ ▶), wide layout shows all sub-grids
+  - `js/app.js`: undo stack, hint (clue-pointing via deriveHint with player marks), "tell me one answer" reveal, completion check (gentle message if full-but-wrong), autosave
+  - `js/storage.js`: IndexedDB single save slot + navigator.storage.persist; localStorage for last-difficulty only
+  - `deriveHint` now takes player marks → hints reflect what the *player* can deduce next
+  - Clue text uses grid labels verbatim ("Booth 3 and Pink do not go together"); pets get "the dog" via `article: true` theme flag
+- Verified in browser preview: full play loop, tap cycling, undo, hint, reveal→completion→done screen with puzzle ID, reload→resume from IndexedDB
+- All 23 engine tests pass
+
 ## Next
 
-Milestone 2 — touch-only playable web app:
-- `index.html` + `css/style.css` + `js/grid.js` + `js/app.js`
-- Elimination grid, tap-to-mark cycling (✓/✗/blank), clue list, undo
-- Difficulty picker start screen, completion check
-- IndexedDB autosave/resume
-- Responsive layout (phone portrait + iPad/Mac landscape)
+- User tests Milestone 2 on real devices (solve a puzzle by hand)
+- Milestone 3 — voice output: speech.js (SpeechSynthesis), read intro/clues/confirmations aloud, iOS audio unlock on first gesture, everything spoken also shown as text
 
 ## Decisions log
 
