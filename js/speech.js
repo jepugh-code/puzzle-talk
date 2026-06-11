@@ -16,9 +16,16 @@ let chosenVoice = null;
  * human than the compact default. Voices load asynchronously, so we re-pick
  * on voiceschanged.
  */
+let lastVoiceCount = -1;
+
 function pickVoice() {
   if (!speechAvailable()) return;
-  const voices = speechSynthesis.getVoices().filter(v => v.lang && v.lang.startsWith('en'));
+  const all = speechSynthesis.getVoices();
+  // iOS populates the list late and often never fires voiceschanged —
+  // re-pick whenever the list has changed since we last looked.
+  if (all.length === lastVoiceCount && chosenVoice) return;
+  lastVoiceCount = all.length;
+  const voices = all.filter(v => v.lang && v.lang.startsWith('en'));
   if (voices.length === 0) return;
 
   const score = (v) => {
@@ -73,6 +80,7 @@ export function speak(text) {
   if (!voiceEnabled() || !text) return Promise.resolve();
   return new Promise((resolve) => {
     speechSynthesis.cancel();
+    pickVoice(); // re-check: iOS loads the voice list late
     const u = new SpeechSynthesisUtterance(text);
     if (chosenVoice) u.voice = chosenVoice;
     u.rate = 0.92;          // a touch slower for clarity
@@ -86,6 +94,7 @@ export function speak(text) {
 export async function speakSequence(texts) {
   if (!voiceEnabled()) return;
   speechSynthesis.cancel();
+  pickVoice(); // re-check: iOS loads the voice list late
   for (const t of texts) {
     if (!enabled) break; // muted mid-sequence
     await new Promise((resolve) => {

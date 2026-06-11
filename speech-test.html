@@ -235,7 +235,9 @@ speakBtn.addEventListener('click', () => {
     ttsStatus.innerHTML = '<span class="bad">✗ Error: ' + e.error + '</span>';
   };
   speechSynthesis.speak(u);
+  const en = speechSynthesis.getVoices().filter(v => v.lang && v.lang.startsWith('en'));
   log('TTS speak() called; voices loaded: ' + speechSynthesis.getVoices().length);
+  log('English voices: ' + (en.map(v => v.name).join(', ') || '(none listed)'));
 });
 
 // --- Copy log ---
