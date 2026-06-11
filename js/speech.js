@@ -8,6 +8,40 @@
 
 let primed = false;
 let enabled = true;
+let chosenVoice = null;
+
+/**
+ * Pick the most natural-sounding English voice available on this device.
+ * Apple ships several tiers; "Enhanced"/"Premium" variants sound far more
+ * human than the compact default. Voices load asynchronously, so we re-pick
+ * on voiceschanged.
+ */
+function pickVoice() {
+  if (!speechAvailable()) return;
+  const voices = speechSynthesis.getVoices().filter(v => v.lang && v.lang.startsWith('en'));
+  if (voices.length === 0) return;
+
+  const score = (v) => {
+    let s = 0;
+    const n = v.name.toLowerCase();
+    if (n.includes('premium')) s += 40;
+    if (n.includes('enhanced')) s += 30;
+    if (n.includes('natural')) s += 25;
+    // Apple's nicer-sounding named voices, in rough quality order
+    const nice = ['ava', 'zoe', 'evan', 'allison', 'samantha', 'susan', 'joelle', 'nathan', 'noelle', 'karen', 'moira', 'tessa'];
+    const idx = nice.findIndex(name => n.includes(name));
+    if (idx >= 0) s += 20 - idx;
+    if (v.lang === 'en-US') s += 5;
+    if (v.default) s += 1;
+    return s;
+  };
+  chosenVoice = voices.sort((a, b) => score(b) - score(a))[0];
+}
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  pickVoice();
+  speechSynthesis.addEventListener?.('voiceschanged', pickVoice);
+}
 
 export function speechAvailable() {
   return 'speechSynthesis' in window;
@@ -40,6 +74,7 @@ export function speak(text) {
   return new Promise((resolve) => {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
+    if (chosenVoice) u.voice = chosenVoice;
     u.rate = 0.92;          // a touch slower for clarity
     u.onend = resolve;
     u.onerror = resolve;
@@ -55,6 +90,7 @@ export async function speakSequence(texts) {
     if (!enabled) break; // muted mid-sequence
     await new Promise((resolve) => {
       const u = new SpeechSynthesisUtterance(t);
+      if (chosenVoice) u.voice = chosenVoice;
       u.rate = 0.92;
       u.onend = resolve;
       u.onerror = resolve;
