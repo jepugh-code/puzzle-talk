@@ -1,0 +1,8 @@
+{
+  "name": "Puzzle Talk Speech Test",
+  "short_name": "SpeechTest",
+  "start_url": "speech-test.html",
+  "display": "standalone",
+  "background_color": "#fdf6e3",
+  "theme_color": "#1d4ed8"
+}
