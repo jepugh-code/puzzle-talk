@@ -26,16 +26,21 @@ every milestone or significant chunk of work.
   a future grid-free "spoken mystery" mode must be addable without
   rearchitecting. (Future option only — do not build it.)
 
-## Voice (expected behavior — UNVERIFIED until Milestone 0 passes on target devices)
+## Voice (VERIFIED — Milestone 0 device tests 2026-06-10)
 
-- iOS/iPadOS Safari: `webkitSpeechRecognition` since 14.5. Push-to-talk only —
-  continuous mode is broken on iOS. Re-create the recognition instance per use.
-- Expected: SpeechRecognition FAILS in standalone-PWA mode on iOS → manifest
-  must use `"display": "browser"`.
-- `speechSynthesis` needs a user gesture on iOS; prime with a silent utterance
-  on first tap.
-- Do not deepen voice-dependent architecture assumptions until the Milestone 0
-  device tests confirm behavior on the actual target iPhone/iPad/MacBook.
+Tested on: iPhone iOS 18.7/Safari 26.5, iPad iOS 18.7/Safari 26.5 (both
+browser tab and standalone/home-screen), MacBook Safari 26.5.
+
+- `webkitSpeechRecognition` available and working on all three devices.
+- Push-to-talk model confirmed correct (continuous mode not used).
+- **Standalone/PWA mode works on iOS** — recognition did NOT fail when launched
+  from home screen. Manifest may use `"display": "standalone"`.
+- `speechSynthesis` works on all devices; prime with a silent utterance on
+  first user gesture (already in harness code).
+- Re-create the recognition instance per use (already in harness code).
+- Transcription accuracy was excellent (confidence 1.00 on all tests); slight
+  mishear ("He" vs "Mary") in one standalone run — normal variance, handled
+  by fuzzy matching layer.
 
 ## Command matching (keep simple)
 

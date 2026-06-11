@@ -2,34 +2,47 @@
 
 _Last updated: 2026-06-10_
 
-## Status: Milestone 0 — speech test harness built, awaiting device-test results
+## Status: Milestone 1 COMPLETE — ready to begin Milestone 2
 
 ## Done
 
-- Plan approved with amendments (see CLAUDE.md for all binding decisions:
-  simplicity principle, difficulty bands, simple command-matching cascade,
-  IndexedDB-only saves, deterministic puzzle IDs, accessibility requirements,
-  hint scope limit, decoupled engine for future grid-free mode).
-- Verified (desk research only): iOS Safari supports `webkitSpeechRecognition`
-  since 14.5; continuous mode broken on iOS; recognition reportedly fails in
-  standalone-PWA mode. **All treated as unverified until Milestone 0 passes on
-  the actual target devices.**
+- Plan approved with amendments (see CLAUDE.md for all binding decisions).
 - CLAUDE.md and PROGRESS.md created.
-- Milestone 0 harness built: `speech-test.html` — standalone page with
-  push-to-talk recognition test, SpeechSynthesis sample-clue test, and an
-  on-screen diagnostic log (UA, display mode, errors).
+- Milestone 0 harness built and deployed to GitHub Pages.
+- **Device tests PASSED** (2026-06-10):
+  - iPhone iOS 18.7 / Safari 26.5 (browser tab): ✅ recognition, ✅ TTS
+  - iPhone iOS 18.7 / Safari 26.5 (standalone/home-screen): ✅ recognition, ✅ TTS
+  - iPad iOS 18.7 / Safari 26.5 (browser tab): ✅ recognition, ✅ TTS
+  - MacBook Safari 26.5 (browser tab): ✅ recognition, ✅ TTS
+- Key finding: standalone/PWA mode does NOT break recognition on this device.
+  Manifest may use `"display": "standalone"`.
 
-## In progress
+## Done (continued)
 
-- User deploys harness to GitHub Pages (instructions given in chat) and runs
-  it on the target iPhone, iPad, and MacBook — both in Safari and after
-  add-to-home-screen — and reports results.
+- Milestone 1 engine complete — 22/22 tests pass:
+  - `js/solver.js`: constraint-propagation + MRV backtracking solver
+  - `js/generator.js`: generate-all-then-prune approach; link clues preferred over direct_neg during pruning; deterministic puzzle IDs
+  - `js/themes.js`: 7 curated theme packs
+  - `tests/engine.test.mjs`: full suite covering solver, generation, difficulty, hints, themes, bulk smoke tests
+- Key decisions made in M1:
+  - Difficulty metric: count non-name link clues (medium ≥3, hard ≥5+special) rather than propagation rounds
+  - Pruner order: try to remove direct_neg first (put at high indices), preserve link clues
+  - MRV heuristic in backtracking search prevents OOM on medium/hard puzzles
+  - `either_or` clues: hard only (not medium) — simplifies solver and generation
+
+## CLAUDE.md: Final difficulty metrics (calibrated)
+- **Easy 3×3**: any uniquely solvable puzzle; direct_pos and direct_neg allowed
+- **Medium 4×4**: pruned clues must include ≥3 non-name link clues; direct_neg ≤6
+- **Hard 4×5**: pruned clues must include ≥5 non-name link clues + ≥1 either_or or ordering clue
 
 ## Next
 
-- **PAUSED until device-test results arrive.** Then: Milestone 1 — puzzle
-  engine (solver.js, generator.js, themes.js + Node test scripts), calibrate
-  difficulty bands, document final metrics in CLAUDE.md.
+Milestone 2 — touch-only playable web app:
+- `index.html` + `css/style.css` + `js/grid.js` + `js/app.js`
+- Elimination grid, tap-to-mark cycling (✓/✗/blank), clue list, undo
+- Difficulty picker start screen, completion check
+- IndexedDB autosave/resume
+- Responsive layout (phone portrait + iPad/Mac landscape)
 
 ## Decisions log
 
