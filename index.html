@@ -25,7 +25,9 @@
   <h1>🧩 Puzzle Talk</h1>
   <p id="solved-count" class="hidden"></p>
   <button id="btn-continue" class="difficulty-btn hidden">▶ Continue your puzzle</button>
-  <p>Pick a puzzle to begin:</p>
+  <button id="btn-daily" class="difficulty-btn">📅 Today's Puzzle
+    <small>A fresh one every morning</small></button>
+  <p>Or pick a difficulty:</p>
   <button id="btn-easy" class="difficulty-btn">Easy
     <small>3 things to match — a gentle start</small></button>
   <button id="btn-medium" class="difficulty-btn">Medium
@@ -93,6 +95,22 @@
     </div>
 
     <div class="menu-section">
+      <h3>Family puzzle</h3>
+      <p class="menu-tip">Type your family's names and the <strong>Grandkids</strong> puzzles will use them!</p>
+      <input class="fam-name" maxlength="14" placeholder="Name 1">
+      <input class="fam-name" maxlength="14" placeholder="Name 2">
+      <input class="fam-name" maxlength="14" placeholder="Name 3">
+      <input class="fam-name" maxlength="14" placeholder="Name 4">
+      <input class="fam-name" maxlength="14" placeholder="Name 5">
+      <button id="menu-save-names" class="menu-btn">💾 Save names</button>
+    </div>
+
+    <div class="menu-section">
+      <h3>Reading comfort</h3>
+      <button id="menu-big-text" class="menu-btn"></button>
+    </div>
+
+    <div class="menu-section">
       <h3>Instructions</h3>
       <button id="menu-instructions" class="menu-btn">📖 How to play</button>
       <p id="menu-help-text" class="hidden"></p>
@@ -106,6 +124,7 @@
   <div id="done-text"></div>
   <div id="done-id"></div>
   <button id="btn-done-home">Play another puzzle</button>
+  <button id="btn-share">📣 Tell the family</button>
 </div>
 
 <script type="module" src="js/app.js"></script>

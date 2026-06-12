@@ -5,6 +5,7 @@
  */
 
 import { generatePuzzle, clueText, deriveHint, doesPhrase } from './generator.js';
+import { setFamilyNames, themeCount } from './themes.js';
 import { renderGrid, showPage, flashCell, markKey, getMark, categoryPairs } from './grid.js';
 import { saveGame, loadGame, clearGame, requestPersistence, getSetting, setSetting } from './storage.js';
 import { primeSpeech, speak, speakSequence, stopSpeaking, setVoiceEnabled, voiceEnabled, speechAvailable, listenOnce, recognitionAvailable, isListening, stopListening, voiceChoices, selectVoice, currentVoiceName } from './speech.js';
@@ -24,6 +25,9 @@ let currentPage = 0;
 let solvedAnnounced = false;
 let pendingAction = null;   // { kind: 'mark', a, b, i, j, value } awaiting yes/no
 let lastClueIndex = -1;     // for "read that again" / "next clue"
+let coachMode = false;      // first-ever puzzle gets gentle coaching
+let coachStep = 0;
+let shareMessage = '';      // filled in when a puzzle is solved
 
 const $ = (id) => document.getElementById(id);
 
@@ -82,6 +86,7 @@ export function setMark(a, b, i, j, value) {
   gridApi.refresh(marks);
   flashCell($('grid'), a, b, i, j);
   if (voiceEnabled()) tick();
+  coachEncourage();
   autosave();
   checkCompletion();
 }
@@ -180,10 +185,12 @@ function checkCompletion() {
 }
 
 async function finishPuzzle() {
+  coachMode = false;
   const text = `Wonderful! You solved the ${puzzle.theme.name} puzzle.`;
   $('done-text').textContent = text;
   $('done-id').textContent = `Puzzle ${puzzle.id}`;
   setSetting('solvedCount', getSetting('solvedCount', 0) + 1);
+  shareMessage = `I just solved the "${puzzle.theme.name}" ${puzzle.difficulty} logic puzzle on Puzzle Talk! 🧩`;
   if (voiceEnabled()) chime();
   speak(text);
   await clearGame();
@@ -347,6 +354,24 @@ function checkWork() {
   }
 }
 
+/** Read the grid back, person by person — for finding your place again. */
+function readGridBack() {
+  const lines = [];
+  for (let e = 0; e < puzzle.numItems; e++) {
+    const name = puzzle.theme.categories[0].items[e];
+    const knowns = [];
+    for (let c = 1; c < puzzle.numCategories; c++) {
+      for (let j = 0; j < puzzle.numItems; j++) {
+        if (getMark(marks, 0, c, e, j) === 2) {
+          knowns.push(confirmPhrase(0, e, c, j, true));
+        }
+      }
+    }
+    lines.push(knowns.length > 0 ? knowns.join('. ') : `Nothing settled for ${name} yet`);
+  }
+  setMessage(`Here's your grid. ${lines.join('. ')}.`);
+}
+
 function handleUtterance(text) {
   armIdleNudge();
   const parsed = parseUtterance(text, puzzle.theme);
@@ -381,6 +406,7 @@ function handleUtterance(text) {
     case 'reveal': revealOneAnswer(); break;
     case 'help': setMessage(HELP_TEXT); break;
     case 'status': statusSummary(); break;
+    case 'read_grid': readGridBack(); break;
     case 'check': checkWork(); break;
     case 'read_all': readCluesAloud(); break;
     case 'read_clue': readClue(parsed.n); break;
@@ -506,7 +532,7 @@ function startPuzzle(p, restoredMarks = null, restoredUndo = null) {
   gridApi = renderGrid($('grid'), p.theme, marks, cycleMark);
   updatePaging();
 
-  setMessage(p.theme.intro);
+  setMessage(coachMode ? `${p.theme.intro} ${coachSuggestion()}` : p.theme.intro);
   showScreen('play');
   armIdleNudge();
   autosave();
@@ -514,6 +540,9 @@ function startPuzzle(p, restoredMarks = null, restoredUndo = null) {
 
 function newPuzzle(difficulty) {
   setSetting('difficulty', difficulty);
+  // Gentle onboarding: coach the very first puzzle (before any win).
+  coachMode = difficulty === 'easy' && getSetting('solvedCount', 0) === 0;
+  coachStep = 0;
   let p = null;
   for (let tries = 0; tries < 8 && !p; tries++) {
     p = generatePuzzle({ difficulty });
@@ -523,6 +552,49 @@ function newPuzzle(difficulty) {
     return;
   }
   startPuzzle(p);
+}
+
+/** Today's puzzle — same for everyone, a fresh one each day. */
+function dailyPuzzle() {
+  const day = Math.floor(Date.now() / 86400000); // UTC day number
+  coachMode = false;
+  let p = null;
+  for (let tries = 0; tries < 8 && !p; tries++) {
+    p = generatePuzzle({
+      difficulty: 'medium',
+      seed: (day * 7919 + tries * 104729) >>> 0,
+      themeIndex: (day + tries) % themeCount(),
+    });
+  }
+  if (!p) { setMessage("Sorry, I had trouble making today's puzzle."); return; }
+  startPuzzle(p);
+}
+
+// --- Onboarding coach (first puzzle ever) ---
+
+/** Suggest an exact phrase she can say, drawn from this puzzle's own clues. */
+function coachSuggestion() {
+  const c = puzzle.clues.find(x => x.type === 'direct_neg' || x.type === 'direct_pos');
+  if (c) {
+    const name = puzzle.theme.categories[0].items[c.nameIdx];
+    const cat = puzzle.theme.categories[c.cat];
+    const tmpl = c.type === 'direct_pos' ? cat.does : cat.not;
+    return `Let's try it together. Tap the big blue microphone and say: ${name} ${tmpl.replace('{}', cat.items[c.itemIdx])}.`;
+  }
+  return 'Tap the big blue microphone and say: read the clues.';
+}
+
+function coachEncourage() {
+  if (!coachMode) return;
+  coachStep++;
+  if (coachStep === 1) {
+    setTimeout(() => {
+      if (coachMode && !solvedAnnounced) {
+        setMessage("Lovely — that's exactly how it works! Keep going clue by clue. Whenever you're unsure, just say: give me a hint.");
+      }
+    }, 4500);
+    coachMode = false; // one nudge is plenty; the hints take it from here
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -624,6 +696,36 @@ function initMenu() {
     if (voiceEnabled()) speak('Voice is on.');
   });
 
+  // Family names → Grandkids puzzles
+  const famInputs = [...document.querySelectorAll('.fam-name')];
+  const savedNames = getSetting('familyNames', []);
+  famInputs.forEach((inp, i) => { inp.value = savedNames[i] || ''; });
+  $('menu-save-names').addEventListener('click', () => {
+    const names = famInputs.map(inp => inp.value);
+    const applied = setFamilyNames(names);
+    setSetting('familyNames', applied);
+    famInputs.forEach((inp, i) => { inp.value = applied[i] || ''; });
+    speak(applied.length > 0
+      ? `Saved! The next Grandkids puzzle will star ${applied.join(', ')}.`
+      : 'Names cleared — back to the regular puzzle names.');
+    $('menu-save-names').textContent = '✓ Saved!';
+    setTimeout(() => { $('menu-save-names').textContent = '💾 Save names'; }, 2500);
+  });
+
+  // Larger print toggle
+  function refreshBigText() {
+    const on = getSetting('bigText', false);
+    document.documentElement.classList.toggle('big-text', on);
+    $('menu-big-text').textContent = on
+      ? '🔍 Larger print is ON — tap for regular size'
+      : '🔍 Tap for larger print';
+  }
+  refreshBigText();
+  $('menu-big-text').addEventListener('click', () => {
+    setSetting('bigText', !getSetting('bigText', false));
+    refreshBigText();
+  });
+
   $('menu-instructions').addEventListener('click', () => {
     if (!$('screen-play').classList.contains('hidden')) {
       closeMenu();
@@ -643,6 +745,10 @@ function initMenu() {
 
 async function init() {
   requestPersistence();
+  // Saved family names personalize the Grandkids theme (must run before
+  // any puzzle — including a resumed one — is generated).
+  const fam = getSetting('familyNames', []);
+  if (fam.length > 0) setFamilyNames(fam);
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => { /* offline support is optional */ });
   }
@@ -654,6 +760,20 @@ async function init() {
   $('btn-medium').addEventListener('click', () => { primeSpeech(); newPuzzle('medium'); });
   $('btn-hard').addEventListener('click', () => { primeSpeech(); newPuzzle('hard'); });
   $('btn-continue').addEventListener('click', () => { primeSpeech(); showScreen('play'); });
+  $('btn-daily').addEventListener('click', () => { primeSpeech(); dailyPuzzle(); });
+
+  // Share a win (system share sheet; falls back to copying the text)
+  $('btn-share').addEventListener('click', async () => {
+    const text = shareMessage || 'I just solved a logic puzzle on Puzzle Talk! 🧩';
+    if (navigator.share) {
+      try { await navigator.share({ text }); } catch { /* user cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text);
+        $('btn-share').textContent = '✓ Copied — paste it in a message!';
+      } catch { /* no clipboard either; nothing to do */ }
+    }
+  });
 
   $('btn-talk').addEventListener('click', startTalking);
   $('btn-read').addEventListener('click', () => { primeSpeech(); readCluesAloud(); });

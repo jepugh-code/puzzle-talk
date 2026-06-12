@@ -125,6 +125,12 @@ test('"what do I know so far" → status', () => {
   assert.equal(parseUtterance('what do I know so far?', vocab).intent, 'status');
 });
 
+test('"read my grid back" → read_grid', () => {
+  assert.equal(parseUtterance('read my grid back', vocab).intent, 'read_grid');
+  assert.equal(parseUtterance('read the grid', vocab).intent, 'read_grid');
+  assert.equal(parseUtterance('where did I leave off?', vocab).intent, 'read_grid');
+});
+
 test('"am I done?" → check', () => {
   assert.equal(parseUtterance('am I done?', vocab).intent, 'check');
 });

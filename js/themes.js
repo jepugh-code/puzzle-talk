@@ -280,3 +280,28 @@ export function getTheme(themeIndex, numCategories, numItems) {
 }
 
 export function themeCount() { return THEMES.length; }
+
+const DEFAULT_GRANDKIDS = ["Anna", "Bobby", "Carla", "Danny", "Emma"];
+
+/**
+ * Replace the Grandkids names with the player's real family names.
+ * Fewer than 5 names are padded with defaults; duplicates are dropped
+ * (duplicate names would break voice matching). Applies to puzzles
+ * generated after the call.
+ */
+export function setFamilyNames(names) {
+  const t = THEMES.find(x => x.name === 'Grandkids');
+  const seen = new Set();
+  const clean = (names || [])
+    .map(n => String(n).trim())
+    .filter(n => n.length > 0 && /^[A-Za-z][A-Za-z .'-]*$/.test(n))
+    .filter(n => { const k = n.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+    .slice(0, 5);
+  const padded = [...clean];
+  for (const d of DEFAULT_GRANDKIDS) {
+    if (padded.length >= 5) break;
+    if (!seen.has(d.toLowerCase())) { padded.push(d); seen.add(d.toLowerCase()); }
+  }
+  t.categories[0].items = padded;
+  return clean;
+}

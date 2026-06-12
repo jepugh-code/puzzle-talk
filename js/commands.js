@@ -132,6 +132,8 @@ const CONTROL_PATTERNS = [
   { intent: 'reveal', re: /\b(tell me (one|an) answer|give me (one|an) answer|just tell me)\b/ },
   // help / how to play
   { intent: 'help', re: /\b(help|how do i play|how does this work|i do not understand|i am confused|i m confused|what is this)\b/ },
+  // read the grid back (deeper than status — row by row)
+  { intent: 'read_grid', re: /\b(read|tell)( me)?( back)? (my|the) grid( back)?\b|\bwhere did i leave off\b|\bread (it all|everything) back\b/ },
   // status
   { intent: 'status', re: /\b(what do i know|where am i|where was i|what have i (got|found)|so far)\b/ },
   // check / done

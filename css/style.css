@@ -223,6 +223,31 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow-press); }
 }
 #menu-help-text { font-size: 1.1rem; line-height: 1.5; }
 
+.fam-name {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 1.15rem;
+  min-height: 44px;
+  padding: 0.4rem 0.8rem;
+  margin: 0.4rem 0;
+  border: 2px solid var(--ink);
+  border-radius: 0.75rem;
+  background: #fbfaf6;
+  color: var(--ink);
+}
+
+/* Larger print mode — scales every rem-sized element */
+html.big-text { font-size: 125%; }
+
+#btn-daily { background: linear-gradient(180deg, #e8920f, #b45309); }
+
+#btn-share {
+  display: block;
+  margin: 0 auto;
+  font-size: 1.2rem;
+}
+
 /* Speech bubble */
 #message {
   position: relative;
