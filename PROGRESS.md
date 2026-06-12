@@ -66,6 +66,21 @@ _Last updated: 2026-06-10_
   from the puzzle's own clues; one encouragement after first mark
 - Share button on win screen (navigator.share → clipboard fallback)
 
+## Post-ship round 6 (2026-06-12) — user device-test feedback
+
+- FIXED scroll-away Talk bar (iPhone always, iPad medium/hard): the play
+  screen's rise animation left a persistent transform, making it the
+  containing block for the position:fixed action bar. Entrance is now
+  fade-only. Verified: bar pinned at viewport bottom after scrolling.
+- Stuck full-but-wrong grid: fixMistakes() clears only marks contradicting
+  the solution (one undo group); 🔧 button appears when stuck; voice:
+  "fix my mistakes" / "what's wrong" / "clear my errors"
+- 📖 How to play button on the start screen (opens menu, shows + speaks help)
+- Voice on iOS: CONFIRMED Apple limitation — downloaded Enhanced voices are
+  never exposed to web apps on iOS (Apple dev forums); Samantha is the best
+  available on iPhone/iPad. Enhanced voices DO work on macOS Safari. Menu
+  tip rewritten to say so honestly. Do not chase this further.
+
 ## Open items
 
 - Voice quality: if her devices show only robotic voices in the menu list,
