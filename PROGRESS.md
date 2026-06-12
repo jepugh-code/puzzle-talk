@@ -81,6 +81,16 @@ _Last updated: 2026-06-10_
   available on iPhone/iPad. Enhanced voices DO work on macOS Safari. Menu
   tip rewritten to say so honestly. Do not chase this further.
 
+## Post-ship round 7 (2026-06-12) — voice audition results
+
+- voices.html audition page (unfiltered tap-to-hear list of every voice)
+- User tested 68 voices on iPad: Daniel (en-GB), Moira (en-IE), Tessa
+  (en-ZA) clearly better than Samantha — they were hidden by our
+  en-US-only filter. Filter widened to all English minus novelty and
+  en-IN; Daniel/Moira/Tessa boosted (+12) above Samantha in auto-pick;
+  menu shows accent labels. ElevenLabs proxy plan on hold — free voices
+  may be good enough now (user has $5 ElevenLabs sub if needed).
+
 ## Open items
 
 - Voice quality: if her devices show only robotic voices in the menu list,
