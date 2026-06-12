@@ -2,7 +2,31 @@
 
 _Last updated: 2026-06-10_
 
-## Status: Milestone 4 COMPLETE (pending user device testing) — next: Milestone 5 (polish & ship)
+## Status: Milestone 5 COMPLETE — all milestones shipped. Open item: voice quality follow-up
+
+## Done (Milestone 5 — polish & ship)
+
+- PWA: manifest.webmanifest now belongs to the main app (`display:
+  standalone`, verified safe on target devices in M0), canvas-drawn app
+  icons (elimination-grid motif, 192/512 + 180 apple-touch-icon)
+- `sw.js`: network-first service worker — always fresh online, opens from
+  cache offline; registered in app.js (failure is non-fatal)
+- On-screen ❓ Help button (same plain-language text as the "help" voice command)
+- speech-test.html kept as a diagnostic tool; manifest link removed
+
+## Post-ship fixes already landed
+
+- Auto-cross row/column on ✓ (one undo group; old saves normalized)
+- Natural voice selection: prefer Premium/Enhanced/named Apple voices;
+  re-pick at speak time; wait up to 600ms for Safari's lazy voice list
+  (first-utterance robotic-voice bug fixed — confirmed by user log)
+
+## Open items
+
+- User reports occasional robotic voice — latest lazy-list fix deployed,
+  awaiting user confirmation across devices; may add a by-ear voice
+  chooser if auto-pick is not enough
+- Grandma field test!
 
 ## Done (Milestone 4 — voice input)
 
