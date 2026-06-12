@@ -699,7 +699,7 @@ async function populateVoiceList() {
     const btn = document.createElement('button');
     btn.className = 'menu-btn voice-btn' + (v.name === current ? ' voice-current' : '');
     btn.textContent = (v.name === current ? '✓ ' : '') + v.label +
-      (v.natural ? ' ⭐ natural' : '');
+      ' (' + v.accent + ')' + (v.natural ? ' ⭐ natural' : '');
     btn.addEventListener('click', async () => {
       await selectVoice(v.name);
       populateVoiceList(); // refresh checkmarks

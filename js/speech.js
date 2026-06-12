@@ -25,8 +25,10 @@ function voiceScore(v) {
   if (n.includes('premium')) s += 40;
   if (n.includes('enhanced')) s += 30;
   if (n.includes('natural')) s += 25;
-  // Apple's nicer-sounding named voices, in rough quality order
-  const nice = ['ava', 'zoe', 'evan', 'allison', 'samantha', 'susan', 'joelle', 'nathan', 'noelle', 'karen', 'moira', 'tessa'];
+  // Apple's nicer-sounding named voices, in rough quality order.
+  const nice = ['ava', 'zoe', 'evan', 'allison', 'daniel', 'moira', 'tessa', 'samantha', 'susan', 'joelle', 'nathan', 'noelle', 'karen'];
+  // Device testing (2026-06-12): Daniel, Moira, Tessa beat Samantha on iOS.
+  if (/^(daniel|moira|tessa)\b/.test(n)) s += 12;
   const idx = nice.findIndex(name => n.includes(name));
   if (idx >= 0) s += 20 - idx;
   if (v.lang === 'en-US') s += 5;
@@ -38,14 +40,22 @@ function voiceScore(v) {
 const NOVELTY = /albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|grandma|grandpa|junior|kathy|ralph|fred|eddy|flo|reed|rocko|sandy|shelley/i;
 
 function rankedVoices() {
-  const american = speechSynthesis.getVoices()
-    .filter(v => v.lang === 'en-US' && !NOVELTY.test(v.name))
+  // All English voices minus the novelty ones — device testing showed the
+  // best-sounding free iOS voices (Daniel, Moira, Tessa) are not en-US.
+  const english = speechSynthesis.getVoices()
+    .filter(v => v.lang && v.lang.startsWith('en') && v.lang !== 'en-IN' && !NOVELTY.test(v.name))
     .sort((a, b) => voiceScore(b) - voiceScore(a));
-  // If any Enhanced/Premium voices are installed, offer only those.
-  const best = american.filter(v => /premium|enhanced/i.test(v.name));
+  // If any Enhanced/Premium voices are installed, prefer only those.
+  const best = english.filter(v => /premium|enhanced/i.test(v.name));
   if (best.length > 0) return best;
-  return american;
+  return english;
 }
+
+const ACCENTS = {
+  'en-US': 'American', 'en-GB': 'British', 'en-IE': 'Irish',
+  'en-AU': 'Australian', 'en-ZA': 'South African', 'en-IN': 'Indian',
+  'en-CA': 'Canadian', 'en-NZ': 'New Zealand', 'en-GB-SCT': 'Scottish',
+};
 
 function pickVoice() {
   if (!speechAvailable()) return;
@@ -102,11 +112,12 @@ export async function voiceChoices() {
   if (!speechAvailable()) return [];
   await ensureVoices();
   return speechSynthesis.getVoices()
-    .filter(v => v.lang === 'en-US' && !NOVELTY.test(v.name))
+    .filter(v => v.lang && v.lang.startsWith('en') && v.lang !== 'en-IN' && !NOVELTY.test(v.name))
     .sort((a, b) => voiceScore(b) - voiceScore(a))
     .map(v => ({
       name: v.name,
       label: v.name.replace(/\(.*\)/, '').trim(),
+      accent: ACCENTS[v.lang] || v.lang,
       natural: /premium|enhanced/i.test(v.name),
     }));
 }
