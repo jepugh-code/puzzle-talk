@@ -21,11 +21,22 @@ _Last updated: 2026-06-10_
   re-pick at speak time; wait up to 600ms for Safari's lazy voice list
   (first-utterance robotic-voice bug fixed — confirmed by user log)
 
+## Post-ship round 2 (2026-06-11)
+
+- Voice: choose-by-ear picker on start screen (cycleVoice speaks each
+  voice's name, persists in localStorage 'pt-voiceName', saved choice wins
+  over auto-pick); 60ms post-cancel delay (Safari ignores u.voice if
+  speak() follows cancel() immediately — likely the remaining robotic case).
+  NOTE: iOS Settings voice selection does NOT apply to web apps.
+- Visual refresh: gradient background, colored difficulty buttons,
+  card shadows, speech-bubble message box, pop animation on marks,
+  blurred action bar, ui-rounded type.
+- confetti.js celebration on win + bouncing emoji (prefers-reduced-motion
+  respected).
+
 ## Open items
 
-- User reports occasional robotic voice — latest lazy-list fix deployed,
-  awaiting user confirmation across devices; may add a by-ear voice
-  chooser if auto-pick is not enough
+- User to confirm voice fix on devices (use the start-screen voice picker)
 - Grandma field test!
 
 ## Done (Milestone 4 — voice input)
