@@ -55,6 +55,17 @@ _Last updated: 2026-06-10_
   "▶ Continue your puzzle"
 - Removed: scattered quit/help/voice buttons, start-screen cycle picker
 
+## Post-ship round 5 (2026-06-11)
+
+- Family puzzle: menu inputs put real names into Grandkids theme
+  ('familyNames' setting, applied in init before any generation)
+- "Read my grid back" voice intent (read_grid) — per-person spoken recap
+- Daily puzzle button (UTC day seed × 7919, theme rotates by day, medium)
+- Larger-print toggle ('bigText' setting → html.big-text, 125% base)
+- Onboarding coach: first puzzle before any win suggests an exact utterance
+  from the puzzle's own clues; one encouragement after first mark
+- Share button on win screen (navigator.share → clipboard fallback)
+
 ## Open items
 
 - Voice quality: if her devices show only robotic voices in the menu list,
