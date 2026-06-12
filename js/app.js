@@ -180,7 +180,8 @@ function checkCompletion() {
       finishPuzzle();
     }
   } else {
-    setMessage("Hmm — the grid is full, but something doesn't quite match the clues. Want to double-check, or use a hint?");
+    $('btn-fix').classList.remove('hidden');
+    setMessage("Hmm — the grid is full, but something doesn't quite match the clues. Don't worry! Just say: fix my mistakes — or tap the Fix button — and I'll clear the marks that don't fit, keeping all your correct work.");
   }
 }
 
@@ -354,6 +355,44 @@ function checkWork() {
   }
 }
 
+/** Does the real solution connect item i of category a with item j of category b? */
+function cellCorrect(a, b, i, j) {
+  for (let e = 0; e < puzzle.numItems; e++) {
+    const hasA = a === 0 ? e === i : puzzle.solution[e][a] === i;
+    const hasB = b === 0 ? e === j : puzzle.solution[e][b] === j;
+    if (hasA && hasB) return true;
+  }
+  return false;
+}
+
+/** Clear every mark that contradicts the solution — the un-stuck button. */
+export function fixMistakes() {
+  const group = [];
+  for (const [a, b] of categoryPairs(puzzle.numCategories)) {
+    for (let i = 0; i < puzzle.numItems; i++) {
+      for (let j = 0; j < puzzle.numItems; j++) {
+        const v = getMark(marks, a, b, i, j);
+        if (v === 0) continue;
+        const correct = cellCorrect(a, b, i, j);
+        if ((v === 2 && !correct) || (v === 1 && correct)) {
+          const key = markKey(a, b, i, j);
+          group.push({ key, prev: v, next: 0 });
+          marks.delete(key);
+        }
+      }
+    }
+  }
+  $('btn-fix').classList.add('hidden');
+  if (group.length === 0) {
+    setMessage("Good news — everything on your grid matches the clues! Keep going.");
+    return;
+  }
+  undoStack.push(group);
+  gridApi.refresh(marks);
+  autosave();
+  setMessage(`I cleared ${group.length === 1 ? 'one mark' : group.length + ' marks'} that didn't match the clues. Everything still on the grid is right — keep going!`);
+}
+
 /** Read the grid back, person by person — for finding your place again. */
 function readGridBack() {
   const lines = [];
@@ -407,6 +446,7 @@ function handleUtterance(text) {
     case 'help': setMessage(HELP_TEXT); break;
     case 'status': statusSummary(); break;
     case 'read_grid': readGridBack(); break;
+    case 'fix_mistakes': fixMistakes(); break;
     case 'check': checkWork(); break;
     case 'read_all': readCluesAloud(); break;
     case 'read_clue': readClue(parsed.n); break;
@@ -517,6 +557,7 @@ function startPuzzle(p, restoredMarks = null, restoredUndo = null) {
   undoStack = (restoredUndo || []).map(e => (Array.isArray(e) ? e : [e]));
   solvedAnnounced = false;
   currentPage = 0;
+  $('btn-fix').classList.add('hidden');
 
   // Title + clues
   $('puzzle-title').textContent = `${p.theme.name} (${p.difficulty})`;
@@ -777,6 +818,16 @@ async function init() {
 
   $('btn-talk').addEventListener('click', startTalking);
   $('btn-read').addEventListener('click', () => { primeSpeech(); readCluesAloud(); });
+  $('btn-fix').addEventListener('click', () => { primeSpeech(); fixMistakes(); });
+  $('btn-howto').addEventListener('click', () => {
+    primeSpeech();
+    openMenu();
+    const el = $('menu-help-text');
+    el.textContent = HELP_TEXT;
+    el.classList.remove('hidden');
+    $('menu-instructions').scrollIntoView({ block: 'center' });
+    speak(HELP_TEXT);
+  });
   $('btn-undo').addEventListener('click', undo);
   $('btn-hint').addEventListener('click', requestHint);
   $('btn-reveal').addEventListener('click', revealOneAnswer);

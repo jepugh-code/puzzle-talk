@@ -147,8 +147,11 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow-press); }
   margin: 0 auto;
   padding: 0.75rem;
   padding-bottom: 12rem; /* room for action bar incl. big Talk button */
-  animation: rise 0.35s ease both;
+  /* Fade only — a transform here would break the fixed action bar
+     (transformed ancestors become the containing block for fixed children). */
+  animation: fadein 0.35s ease both;
 }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 
 #play-header {
   display: flex;
