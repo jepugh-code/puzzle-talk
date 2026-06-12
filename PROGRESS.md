@@ -34,6 +34,17 @@ _Last updated: 2026-06-10_
 - confetti.js celebration on win + bouncing emoji (prefers-reduced-motion
   respected).
 
+## Post-ship round 3 (2026-06-11)
+
+- Voice picker restricted: en-US only, novelty voices excluded, and if any
+  Enhanced/Premium voices are installed the picker offers ONLY those
+- sounds.js: WebAudio tick on marks + chime on solve (gated by Voice toggle)
+- First-run welcome screen ('welcomed' setting) with spoken walkthrough
+- Solved-puzzles counter on start screen ('solvedCount' setting, hidden at 0)
+- 7 new themes (total 14), all verified generating at every difficulty
+- Talk button breathing animation; 90s idle → gentle spoken nudge
+- newPuzzle retries up to 8 seeds on difficulty-band misses
+
 ## Open items
 
 - User to confirm voice fix on devices (use the start-screen voice picker)
