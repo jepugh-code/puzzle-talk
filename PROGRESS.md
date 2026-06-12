@@ -45,9 +45,21 @@ _Last updated: 2026-06-10_
 - Talk button breathing animation; 90s idle → gentle spoken nudge
 - newPuzzle retries up to 8 seeds on difficulty-band misses
 
+## Post-ship round 4 (2026-06-11)
+
+- ☰ Menu overlay (single level, from start + play screens): Home, new
+  puzzle per difficulty, voice list (en-US non-novelty, ⭐ natural flag,
+  ✓ current, tap = preview + select), voice on/off, instructions, and an
+  on-screen tip for downloading Enhanced voices in iOS Settings
+- 🏠 Home button on play screen preserves the game; start screen shows
+  "▶ Continue your puzzle"
+- Removed: scattered quit/help/voice buttons, start-screen cycle picker
+
 ## Open items
 
-- User to confirm voice fix on devices (use the start-screen voice picker)
+- Voice quality: if her devices show only robotic voices in the menu list,
+  Enhanced voices are not downloaded on that device — the menu tip explains
+  the Settings path. Verify Zoe appears with ⭐ after download.
 - Grandma field test!
 
 ## Done (Milestone 4 — voice input)
