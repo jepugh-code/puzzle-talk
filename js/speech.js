@@ -60,6 +60,21 @@ export function primeSpeech() {
   u.volume = 0;
   speechSynthesis.speak(u);
   primed = true;
+  // Kick off the async voice-list load now so it's ready by the first
+  // real utterance (Safari only starts loading after the first request).
+  speechSynthesis.getVoices();
+  setTimeout(pickVoice, 150);
+  setTimeout(pickVoice, 600);
+}
+
+/** Wait briefly for the voice list to populate (Safari loads it lazily). */
+async function ensureVoices(maxMs = 600) {
+  if (!speechAvailable()) return;
+  const t0 = Date.now();
+  while (speechSynthesis.getVoices().length === 0 && Date.now() - t0 < maxMs) {
+    await new Promise(r => setTimeout(r, 50));
+  }
+  pickVoice();
 }
 
 export function setVoiceEnabled(on) {
@@ -76,11 +91,12 @@ export function voiceEnabled() {
  * the latest message is always the one that matters.
  * Returns a promise that resolves when speech ends (or immediately if muted).
  */
-export function speak(text) {
-  if (!voiceEnabled() || !text) return Promise.resolve();
+export async function speak(text) {
+  if (!voiceEnabled() || !text) return;
+  speechSynthesis.cancel();
+  await ensureVoices();
+  if (!voiceEnabled()) return; // muted while waiting
   return new Promise((resolve) => {
-    speechSynthesis.cancel();
-    pickVoice(); // re-check: iOS loads the voice list late
     const u = new SpeechSynthesisUtterance(text);
     if (chosenVoice) u.voice = chosenVoice;
     u.rate = 0.92;          // a touch slower for clarity
@@ -94,7 +110,7 @@ export function speak(text) {
 export async function speakSequence(texts) {
   if (!voiceEnabled()) return;
   speechSynthesis.cancel();
-  pickVoice(); // re-check: iOS loads the voice list late
+  await ensureVoices();
   for (const t of texts) {
     if (!enabled) break; // muted mid-sequence
     await new Promise((resolve) => {

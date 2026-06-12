@@ -216,14 +216,23 @@ function primeTTS() {
   log('TTS primed with silent utterance');
 }
 
-speakBtn.addEventListener('click', () => {
+speakBtn.addEventListener('click', async () => {
   if (!('speechSynthesis' in window)) {
     ttsStatus.innerHTML = '<span class="bad">✗ speechSynthesis not available.</span>';
     return;
   }
   speechSynthesis.cancel();
+  // Wait briefly for the lazily-loaded voice list (mirrors the main app)
+  const t0 = Date.now();
+  while (speechSynthesis.getVoices().length === 0 && Date.now() - t0 < 600) {
+    await new Promise(r => setTimeout(r, 50));
+  }
+  log('voice list ready after ' + (Date.now() - t0) + 'ms');
   const u = new SpeechSynthesisUtterance(
     'Clue three. The teacher does not own the dog, and Mary lives next to the person who drinks tea.');
+  const en = speechSynthesis.getVoices().filter(v => v.lang && v.lang.startsWith('en'));
+  const best = en.find(v => /premium|enhanced/i.test(v.name)) || en.find(v => /ava|zoe|samantha|allison/i.test(v.name));
+  if (best) u.voice = best;
   u.rate = 0.9;
   u.onstart = () => { log('TTS started (voice: ' + (u.voice ? u.voice.name : 'default') + ')'); };
   u.onend = () => {
