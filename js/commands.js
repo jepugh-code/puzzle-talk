@@ -153,8 +153,8 @@ const CONTROL_PATTERNS = [
   { intent: 'no', re: /^(no|nope|cancel|never mind|wrong|that s wrong)$/ },
 ];
 
-const NEGATIVE_RE = /\b(not|no|never|cross (out|off)|rule out|eliminate|x)\b/;
-const POSITIVE_RE = /\b(has|have|is|are|was|does|do|yes|drinks|keeps|owns|lives|loves|plays|sits|goes|grows|wears|visits|brought|drank|hosts|snacks|munches|dabs|decorates|check|tick)\b/;
+const NEGATIVE_RE = /\b(not|no|never|cross( (out|off))?|rule out|eliminate|x)\b/;
+const POSITIVE_RE = /\b(has|have|is|are|was|does|do|yes|drinks|keeps|owns|lives|loves|plays|sits|goes|grows|wears|visits|brought|drank|hosts|snacks|munches|dabs|decorates|check( off| mark)?|checkmark|tick|match(es)?)\b/;
 
 // ---------------------------------------------------------------------------
 // Main entry

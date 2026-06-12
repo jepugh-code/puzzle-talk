@@ -81,6 +81,31 @@ test('"mark the cat for Alice" → mark, not confident (ambiguous polarity)', ()
   assert.equal(r.confident, false);
 });
 
+test('"check Alice and the cat" → confident positive mark', () => {
+  const r = parseUtterance('check Alice and the cat', vocab);
+  assert.equal(r.intent, 'mark');
+  assert.equal(r.positive, true);
+  assert.equal(r.confident, true);
+});
+
+test('"cross out Ben and house 2" → confident negative mark', () => {
+  const r = parseUtterance('cross out Ben and house 2', vocab);
+  assert.equal(r.intent, 'mark');
+  assert.equal(r.positive, false);
+  assert.equal(r.confident, true);
+});
+
+test('"cross Carol and the bird" (bare cross) → negative mark', () => {
+  const r = parseUtterance('cross Carol and the bird', vocab);
+  assert.equal(r.intent, 'mark');
+  assert.equal(r.positive, false);
+  assert.equal(r.confident, true);
+});
+
+test('"check my work" still asks for a completion check, not a mark', () => {
+  assert.equal(parseUtterance('check my work', vocab).intent, 'check');
+});
+
 test('only one item heard → partial', () => {
   const r = parseUtterance('something about the bird', vocab);
   assert.equal(r.intent, 'partial');

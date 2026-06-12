@@ -209,6 +209,18 @@ function setMessage(text, { silent = false } = {}) {
   if (!silent) speak(text);
 }
 
+/**
+ * Ask a question aloud, then open the microphone automatically so she can
+ * answer hands-free (no Talk tap needed for yes/no questions).
+ */
+async function askAndListen(text) {
+  $('message').textContent = text;
+  await speak(text);
+  if (pendingAction && recognitionAvailable() && voiceEnabled() && !isListening()) {
+    startTalking();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Voice input — Talk button + intent dispatch
 // ---------------------------------------------------------------------------
@@ -298,7 +310,7 @@ function proposeMark(refs, positive, confident) {
     let q = `Did you mean: ${confirmPhrase(a, i, b, j, positive)}?`;
     if (overwriting) q = `That square is already marked. Change it so ${confirmPhrase(a, i, b, j, positive)}?`;
     else if (clashing) q = `Hmm — that row already has a check mark. Are you sure ${confirmPhrase(a, i, b, j, positive)}?`;
-    setMessage(`${q} Say yes or no.`);
+    askAndListen(`${q} Say yes or no.`);
     return;
   }
 
@@ -458,7 +470,7 @@ function handleUtterance(text) {
       break;
     case 'new_puzzle':
       pendingAction = { kind: 'new_puzzle' };
-      setMessage("Leave this puzzle and start a new one? Say yes or no.");
+      askAndListen("Leave this puzzle and start a new one? Say yes or no.");
       break;
     case 'yes':
     case 'no':
@@ -484,7 +496,8 @@ function startTalking() {
     onStart: () => {
       talkBtn.classList.add('listening');
       talkBtn.textContent = '👂';
-      $('message').textContent = "I'm listening…";
+      // Keep the question on screen while auto-listening for its answer
+      if (!pendingAction) $('message').textContent = "I'm listening…";
     },
     onResult: (text) => handleUtterance(text),
     onEnd: (gotResult) => {
@@ -550,7 +563,26 @@ function autosave() {
 // Puzzle lifecycle
 // ---------------------------------------------------------------------------
 
+// Faint per-theme watermark behind the play screen.
+const THEME_EMOJI = {
+  'Garden Club': '🌷', 'Grandkids': '🧸', 'Church Potluck': '🥧',
+  'Book Club': '📚', 'Street Neighbors': '🏡', 'Craft Fair': '🧶',
+  'Bingo Night': '🎯', 'Farmers Market': '🌽', 'Bird Watchers': '🐦',
+  'Bake Sale': '🧁', 'Quilting Bee': '🧵', 'Family Recipes': '🍲',
+  'Choir Practice': '🎵', 'Lake Cabin Week': '🛶',
+};
+
+function setThemeBackground(themeName) {
+  const emoji = THEME_EMOJI[themeName] || '🧩';
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'>` +
+    `<text x='30' y='70' font-size='44' opacity='0.06'>${emoji}</text>` +
+    `<text x='130' y='180' font-size='44' opacity='0.06' transform='rotate(-12 150 160)'>${emoji}</text>` +
+    `</svg>`;
+  $('screen-play').style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
 function startPuzzle(p, restoredMarks = null, restoredUndo = null) {
+  setThemeBackground(p.theme.name);
   puzzle = p;
   marks = new Map(restoredMarks || []);
   // Undo entries are groups (arrays); wrap any single entries from old saves.
