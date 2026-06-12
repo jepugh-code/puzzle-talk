@@ -507,6 +507,9 @@ function updatePaging() {
 
 async function init() {
   requestPersistence();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* offline support is optional */ });
+  }
 
   // Voice on/off (persisted). Priming must happen inside a user gesture (iOS).
   setVoiceEnabled(getSetting('voice', true) && speechAvailable());
@@ -530,6 +533,7 @@ async function init() {
   $('btn-hard').addEventListener('click', () => { primeSpeech(); newPuzzle('hard'); });
 
   $('btn-talk').addEventListener('click', startTalking);
+  $('btn-help').addEventListener('click', () => { primeSpeech(); setMessage(HELP_TEXT); });
   $('btn-read').addEventListener('click', () => { primeSpeech(); readCluesAloud(); });
   $('btn-undo').addEventListener('click', undo);
   $('btn-hint').addEventListener('click', requestHint);
