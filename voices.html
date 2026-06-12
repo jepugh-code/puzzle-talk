@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Audition — Puzzle Talk</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; font-size: 1.1rem;
+         background: #fdf6e3; color: #1a1a2e; max-width: 40rem; margin: 0 auto; padding: 1rem; }
+  h1 { font-size: 1.4rem; }
+  p { font-size: 1rem; }
+  .voice { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.6rem;
+           border: 2px solid #1a1a2e; border-radius: 0.6rem; margin: 0.4rem 0; background: #fff; }
+  .voice button { font-size: 1.1rem; min-width: 64px; min-height: 44px; border-radius: 0.5rem;
+                  border: 2px solid #1a1a2e; background: #1d4ed8; color: #fff; cursor: pointer; }
+  .meta { flex: 1; }
+  .name { font-weight: bold; }
+  .tags { font-size: 0.85rem; color: #555; }
+  .us { background: #eef4ff; }
+  #summary { background: #fef9e7; border: 2px solid #d9c989; border-radius: 0.6rem; padding: 0.6rem; }
+  #count { font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>🔊 Voice Audition</h1>
+<p>Tap <strong>Play</strong> on each voice and note any that sound noticeably better than Samantha.
+American voices are highlighted blue and listed first. This shows <em>everything</em> this
+device offers web apps — no filtering.</p>
+<div id="summary">Loading voices… (tap anywhere if this doesn't fill in)</div>
+<div id="list"></div>
+
+<script>
+const SAMPLE = "Clue three. Mary doesn't have the cat, and the teacher lives next door to Ben.";
+let primed = false;
+
+function prime() {
+  if (primed) return;
+  const u = new SpeechSynthesisUtterance(' ');
+  u.volume = 0;
+  speechSynthesis.speak(u);
+  primed = true;
+}
+document.addEventListener('pointerdown', () => { prime(); render(); }, { once: false });
+
+function render() {
+  const voices = speechSynthesis.getVoices();
+  if (voices.length === 0) return;
+  const list = document.getElementById('list');
+  if (list.childElementCount === voices.length) return; // already rendered
+  list.textContent = '';
+
+  document.getElementById('summary').innerHTML =
+    '<span id="count">' + voices.length + ' voices</span> exposed to web apps on this device. ' +
+    'UA: ' + navigator.userAgent.slice(0, 80) + '…';
+
+  const sorted = [...voices].sort((a, b) => {
+    const aUS = a.lang === 'en-US' ? 0 : a.lang.startsWith('en') ? 1 : 2;
+    const bUS = b.lang === 'en-US' ? 0 : b.lang.startsWith('en') ? 1 : 2;
+    return aUS - bUS || a.name.localeCompare(b.name);
+  });
+
+  for (const v of sorted) {
+    const row = document.createElement('div');
+    row.className = 'voice' + (v.lang === 'en-US' ? ' us' : '');
+    const btn = document.createElement('button');
+    btn.textContent = '▶ Play';
+    btn.addEventListener('click', () => {
+      prime();
+      speechSynthesis.cancel();
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(SAMPLE);
+        u.voice = v;
+        u.rate = 0.92;
+        speechSynthesis.speak(u);
+      }, 80);
+    });
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.innerHTML = '<div class="name">' + v.name + '</div>' +
+      '<div class="tags">' + v.lang + (v.localService ? ' · on-device' : ' · network') +
+      (v.default ? ' · default' : '') + ' · ' + (v.voiceURI || '') + '</div>';
+    row.appendChild(btn);
+    row.appendChild(meta);
+    list.appendChild(row);
+  }
+}
+
+speechSynthesis.addEventListener?.('voiceschanged', render);
+render();
+setTimeout(render, 500);
+setTimeout(render, 1500);
+</script>
+</body>
+</html>
