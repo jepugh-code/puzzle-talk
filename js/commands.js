@@ -137,7 +137,7 @@ const CONTROL_PATTERNS = [
   // status
   { intent: 'status', re: /\b(what do i know|where am i|where was i|what have i (got|found)|so far)\b/ },
   // fix mistakes (clear marks that don't match the solution)
-  { intent: 'fix_mistakes', re: /\b(fix|clear) (my )?(mistakes?|errors?|grid)\b|\bwhat( i|')?s wrong\b|\bwhat did i get wrong\b/ },
+  { intent: 'fix_mistakes', re: /\b(fix|clear) (my )?(mistakes?|errors?|grid)\b|\bwhat ?(s|is) wrong\b|\bwhat did i get wrong\b/ },
   // check / done
   { intent: 'check', re: /\b(am i done|check my work|did i (get it|win|finish)|is (that|it) right)\b/ },
   // new puzzle
