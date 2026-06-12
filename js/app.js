@@ -7,8 +7,9 @@
 import { generatePuzzle, clueText, deriveHint, doesPhrase } from './generator.js';
 import { renderGrid, showPage, flashCell, markKey, getMark, categoryPairs } from './grid.js';
 import { saveGame, loadGame, clearGame, requestPersistence, getSetting, setSetting } from './storage.js';
-import { primeSpeech, speak, speakSequence, stopSpeaking, setVoiceEnabled, voiceEnabled, speechAvailable, listenOnce, recognitionAvailable, isListening, stopListening } from './speech.js';
+import { primeSpeech, speak, speakSequence, stopSpeaking, setVoiceEnabled, voiceEnabled, speechAvailable, listenOnce, recognitionAvailable, isListening, stopListening, cycleVoice } from './speech.js';
 import { parseUtterance } from './commands.js';
+import { celebrate } from './confetti.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -165,11 +166,12 @@ function checkCompletion() {
 
 async function finishPuzzle() {
   const text = `Wonderful! You solved the ${puzzle.theme.name} puzzle.`;
-  $('done-text').textContent = text + ' 🎉';
+  $('done-text').textContent = text;
   $('done-id').textContent = `Puzzle ${puzzle.id}`;
   speak(text);
   await clearGame();
   showScreen('done');
+  celebrate();
 }
 
 // ---------------------------------------------------------------------------
@@ -534,6 +536,15 @@ async function init() {
 
   $('btn-talk').addEventListener('click', startTalking);
   $('btn-help').addEventListener('click', () => { primeSpeech(); setMessage(HELP_TEXT); });
+
+  // Choose-by-ear voice picker (on the start screen)
+  $('btn-voice-pick').addEventListener('click', async () => {
+    primeSpeech();
+    const name = await cycleVoice();
+    $('btn-voice-pick').textContent = name
+      ? `🔈 Voice: ${name.replace(/\(.*\)/, '').trim()} — tap to try another`
+      : '🔈 No voices available';
+  });
   $('btn-read').addEventListener('click', () => { primeSpeech(); readCluesAloud(); });
   $('btn-undo').addEventListener('click', undo);
   $('btn-hint').addEventListener('click', requestHint);

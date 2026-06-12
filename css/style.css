@@ -2,13 +2,19 @@
 
 :root {
   --ink: #1a1a2e;
-  --paper: #fdf6e3;
+  --paper-top: #fef9ec;
+  --paper-bottom: #e8eef9;
   --card: #ffffff;
   --blue: #1d4ed8;
   --blue-dark: #1e40af;
-  --red: #b91c1c;
   --green: #15803d;
+  --green-dark: #166534;
+  --purple: #7c3aed;
+  --purple-dark: #6d28d9;
+  --red: #b91c1c;
   --yellow: #fef08a;
+  --shadow: 0 4px 14px rgba(26, 26, 46, 0.12);
+  --shadow-press: 0 2px 6px rgba(26, 26, 46, 0.18);
   --border: 2px solid var(--ink);
 }
 
@@ -18,11 +24,12 @@ html { font-size: 100%; } /* respect user/browser text size */
 
 body {
   margin: 0;
-  font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
+  font-family: -apple-system, ui-rounded, system-ui, "Segoe UI", sans-serif;
   font-size: 1.25rem;          /* ≥20px body text */
   line-height: 1.5;
-  background: var(--paper);
+  background: linear-gradient(170deg, var(--paper-top) 0%, var(--paper-bottom) 100%) fixed;
   color: var(--ink);
+  min-height: 100vh;
 }
 
 .hidden { display: none !important; }
@@ -32,42 +39,58 @@ button {
   font-size: 1.25rem;
   min-height: 44px;
   min-width: 44px;
-  border-radius: 0.75rem;
+  border-radius: 1rem;
   border: var(--border);
   background: var(--card);
   color: var(--ink);
   padding: 0.5rem 1.25rem;
   cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
-button:active { transform: scale(0.97); }
+button:active { transform: scale(0.96); box-shadow: var(--shadow-press); }
 
 /* ---------- Start screen ---------- */
 
 #screen-start {
   max-width: 30rem;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1.25rem;
   text-align: center;
+  animation: rise 0.45s ease both;
 }
-#screen-start h1 { font-size: 2rem; margin-bottom: 0.25rem; }
+#screen-start h1 {
+  font-size: 2.4rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
+}
 #screen-start p { font-size: 1.25rem; }
 
 .difficulty-btn {
   display: block;
   width: 100%;
-  margin: 1rem 0;
-  padding: 1.25rem;
+  margin: 1.1rem 0;
+  padding: 1.3rem;
   font-size: 1.5rem;
   font-weight: bold;
-  background: var(--blue);
   color: #fff;
   border: 3px solid var(--ink);
+  border-radius: 1.25rem;
 }
+#btn-easy   { background: linear-gradient(180deg, #22a04c, var(--green-dark)); }
+#btn-medium { background: linear-gradient(180deg, #2f5fe8, var(--blue-dark)); }
+#btn-hard   { background: linear-gradient(180deg, #8b50f0, var(--purple-dark)); }
 .difficulty-btn small {
   display: block;
   font-size: 1rem;
   font-weight: normal;
-  margin-top: 0.25rem;
+  margin-top: 0.3rem;
+  opacity: 0.95;
+}
+
+#btn-voice-pick {
+  margin-top: 1.5rem;
+  font-size: 1.05rem;
 }
 
 /* ---------- Play screen ---------- */
@@ -77,22 +100,27 @@ button:active { transform: scale(0.97); }
   margin: 0 auto;
   padding: 0.75rem;
   padding-bottom: 12rem; /* room for action bar incl. big Talk button */
+  animation: rise 0.35s ease both;
 }
 
 #puzzle-title {
   font-size: 1.5rem;
   font-weight: bold;
-  margin: 0.25rem 0;
+  margin: 0.25rem 0 0.6rem;
 }
 
+/* Speech bubble */
 #message {
+  position: relative;
   background: var(--card);
   border: var(--border);
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
+  border-radius: 1.25rem;
+  border-bottom-left-radius: 0.3rem;
+  padding: 0.85rem 1.1rem;
   font-size: 1.3rem;
   min-height: 3.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
 }
 
 /* Clues */
@@ -100,26 +128,33 @@ button:active { transform: scale(0.97); }
   font-size: 1.3rem;
   background: var(--card);
   border: var(--border);
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  margin: 0 0 1rem 0;
+  border-radius: 1.25rem;
+  padding: 0.85rem 1.1rem 0.85rem 2.6rem;
+  margin: 0 0 1.1rem 0;
+  box-shadow: var(--shadow);
 }
-#clues li { margin: 0.5rem 0; }
-.clue-highlight { background: var(--yellow); border-radius: 0.25rem; }
+#clues li { margin: 0.55rem 0; }
+.clue-highlight {
+  background: var(--yellow);
+  border-radius: 0.4rem;
+  padding: 0.1rem 0.3rem;
+  margin-left: -0.3rem;
+}
 
 /* Grid */
 #grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.1rem;
   justify-content: center;
 }
 
 .subgrid {
   background: var(--card);
   border: var(--border);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
+  border-radius: 1.25rem;
+  padding: 0.85rem;
+  box-shadow: var(--shadow);
 }
 .subgrid-title {
   font-weight: bold;
@@ -143,7 +178,7 @@ table.elim thead th {
 }
 table.elim tbody th { text-align: right; }
 
-td.cell { padding: 2px; }
+td.cell { padding: 3px; }
 
 .cellbtn {
   width: 3.25rem;   /* ≥44px */
@@ -151,13 +186,21 @@ td.cell { padding: 2px; }
   font-size: 1.75rem;
   font-weight: bold;
   border: 2px solid var(--ink);
-  border-radius: 0.5rem;
-  background: var(--card);
+  border-radius: 0.7rem;
+  background: #fbfaf6;
   padding: 0;
+  box-shadow: inset 0 1px 3px rgba(26, 26, 46, 0.08);
+  transition: background 0.15s ease;
 }
 .cellbtn.no  { color: var(--red); background: #fee2e2; }
 .cellbtn.yes { color: var(--green); background: #dcfce7; }
-.cellbtn.flash { outline: 5px solid var(--blue); outline-offset: 2px; }
+.cellbtn.flash { outline: 5px solid var(--blue); outline-offset: 2px; animation: pop 0.35s ease; }
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
 
 /* Pager (phone) */
 #pager {
@@ -176,7 +219,9 @@ td.cell { padding: 2px; }
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--paper);
+  background: rgba(254, 249, 236, 0.92);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border-top: var(--border);
   padding: 0.5rem 0.75rem;
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
@@ -192,7 +237,7 @@ td.cell { padding: 2px; }
   gap: 0.5rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-top: 0.4rem;
+  margin-top: 0.45rem;
 }
 #actions button { font-size: 1.1rem; }
 
@@ -201,13 +246,15 @@ td.cell { padding: 2px; }
   height: 6rem;
   border-radius: 50%;
   font-size: 2.5rem;
-  background: var(--blue);
+  background: radial-gradient(circle at 35% 30%, #3b6cf0, var(--blue-dark));
   color: #fff;
   border: 4px solid var(--ink);
   flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(29, 78, 216, 0.45);
 }
 #btn-talk.listening {
-  background: var(--red);
+  background: radial-gradient(circle at 35% 30%, #e25555, #991b1b);
+  box-shadow: 0 6px 18px rgba(185, 28, 28, 0.5);
   animation: pulse 1s infinite;
 }
 @keyframes pulse { 50% { transform: scale(1.07); } }
@@ -217,16 +264,38 @@ td.cell { padding: 2px; }
 #screen-done {
   max-width: 30rem;
   margin: 0 auto;
-  padding: 3rem 1rem;
+  padding: 3rem 1.25rem;
   text-align: center;
 }
-#done-text { font-size: 1.75rem; font-weight: bold; }
-#done-id { font-size: 0.9rem; color: #666; margin: 1rem 0 2rem; }
+#done-emoji {
+  font-size: 5rem;
+  animation: bounce-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+#done-text {
+  font-size: 1.75rem;
+  font-weight: bold;
+  animation: rise 0.6s ease 0.15s both;
+}
+#done-id { font-size: 0.9rem; color: #555; margin: 1rem 0 2rem; }
 #btn-done-home {
   font-size: 1.5rem;
   padding: 1rem 2rem;
-  background: var(--blue);
+  background: linear-gradient(180deg, #2f5fe8, var(--blue-dark));
   color: #fff;
+}
+
+@keyframes bounce-in {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
 /* ---------- Wide layout (iPad / Mac) ---------- */

@@ -17,6 +17,28 @@ let chosenVoice = null;
  * on voiceschanged.
  */
 let lastVoiceCount = -1;
+const VOICE_KEY = 'pt-voiceName';
+
+function voiceScore(v) {
+  let s = 0;
+  const n = v.name.toLowerCase();
+  if (n.includes('premium')) s += 40;
+  if (n.includes('enhanced')) s += 30;
+  if (n.includes('natural')) s += 25;
+  // Apple's nicer-sounding named voices, in rough quality order
+  const nice = ['ava', 'zoe', 'evan', 'allison', 'samantha', 'susan', 'joelle', 'nathan', 'noelle', 'karen', 'moira', 'tessa'];
+  const idx = nice.findIndex(name => n.includes(name));
+  if (idx >= 0) s += 20 - idx;
+  if (v.lang === 'en-US') s += 5;
+  if (v.default) s += 1;
+  return s;
+}
+
+function rankedVoices() {
+  return speechSynthesis.getVoices()
+    .filter(v => v.lang && v.lang.startsWith('en'))
+    .sort((a, b) => voiceScore(b) - voiceScore(a));
+}
 
 function pickVoice() {
   if (!speechAvailable()) return;
@@ -25,24 +47,43 @@ function pickVoice() {
   // re-pick whenever the list has changed since we last looked.
   if (all.length === lastVoiceCount && chosenVoice) return;
   lastVoiceCount = all.length;
-  const voices = all.filter(v => v.lang && v.lang.startsWith('en'));
+  const voices = rankedVoices();
   if (voices.length === 0) return;
 
-  const score = (v) => {
-    let s = 0;
-    const n = v.name.toLowerCase();
-    if (n.includes('premium')) s += 40;
-    if (n.includes('enhanced')) s += 30;
-    if (n.includes('natural')) s += 25;
-    // Apple's nicer-sounding named voices, in rough quality order
-    const nice = ['ava', 'zoe', 'evan', 'allison', 'samantha', 'susan', 'joelle', 'nathan', 'noelle', 'karen', 'moira', 'tessa'];
-    const idx = nice.findIndex(name => n.includes(name));
-    if (idx >= 0) s += 20 - idx;
-    if (v.lang === 'en-US') s += 5;
-    if (v.default) s += 1;
-    return s;
-  };
-  chosenVoice = voices.sort((a, b) => score(b) - score(a))[0];
+  // A voice the user chose by ear always wins.
+  let saved = null;
+  try { saved = localStorage.getItem(VOICE_KEY); } catch {}
+  if (saved) {
+    const match = voices.find(v => v.name === saved);
+    if (match) { chosenVoice = match; return; }
+  }
+  chosenVoice = voices[0];
+}
+
+/**
+ * Cycle to the next available voice, speak a sample with it, and remember
+ * the choice. Returns the new voice's name (or null if none available).
+ */
+export async function cycleVoice() {
+  if (!speechAvailable()) return null;
+  await ensureVoices();
+  const voices = rankedVoices();
+  if (voices.length === 0) return null;
+  const idx = chosenVoice ? voices.findIndex(v => v.name === chosenVoice.name) : -1;
+  chosenVoice = voices[(idx + 1) % voices.length];
+  try { localStorage.setItem(VOICE_KEY, chosenVoice.name); } catch {}
+  speechSynthesis.cancel();
+  await new Promise(r => setTimeout(r, 60));
+  const u = new SpeechSynthesisUtterance(
+    `Hello! This voice is called ${chosenVoice.name.replace(/\(.*\)/, '').trim()}. Tap again to try another.`);
+  u.voice = chosenVoice;
+  u.rate = 0.92;
+  speechSynthesis.speak(u);
+  return chosenVoice.name;
+}
+
+export function currentVoiceName() {
+  return chosenVoice ? chosenVoice.name : null;
 }
 
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -95,6 +136,9 @@ export async function speak(text) {
   if (!voiceEnabled() || !text) return;
   speechSynthesis.cancel();
   await ensureVoices();
+  // Safari bug: speaking immediately after cancel() can ignore u.voice
+  // and fall back to the robotic default. A short breath fixes it.
+  await new Promise(r => setTimeout(r, 60));
   if (!voiceEnabled()) return; // muted while waiting
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text);
@@ -111,6 +155,7 @@ export async function speakSequence(texts) {
   if (!voiceEnabled()) return;
   speechSynthesis.cancel();
   await ensureVoices();
+  await new Promise(r => setTimeout(r, 60)); // see speak(): post-cancel Safari bug
   for (const t of texts) {
     if (!enabled) break; // muted mid-sequence
     await new Promise((resolve) => {
