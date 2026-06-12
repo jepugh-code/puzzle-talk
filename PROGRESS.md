@@ -91,6 +91,16 @@ _Last updated: 2026-06-10_
   menu shows accent labels. ElevenLabs proxy plan on hold — free voices
   may be good enough now (user has $5 ElevenLabs sub if needed).
 
+## Post-ship round 8 (2026-06-12)
+
+- "check X and Y" → confident ✓; "cross / cross out X and Y" → confident ✗
+- Faint per-theme emoji watermark on play screen (THEME_EMOJI map in app.js,
+  6%-opacity data-URI SVG; trivially removable if it proves distracting)
+- askAndListen(): yes/no questions auto-open the mic after speech ends —
+  hands-free answers. Full always-listening / wake word NOT feasible on
+  iOS Safari (continuous recognition broken per M0, restart loops
+  unreliable, mic-vs-TTS self-hearing). Documented as platform limit.
+
 ## Open items
 
 - Voice quality: if her devices show only robotic voices in the menu list,
