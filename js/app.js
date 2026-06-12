@@ -7,7 +7,7 @@
 import { generatePuzzle, clueText, deriveHint, doesPhrase } from './generator.js';
 import { renderGrid, showPage, flashCell, markKey, getMark, categoryPairs } from './grid.js';
 import { saveGame, loadGame, clearGame, requestPersistence, getSetting, setSetting } from './storage.js';
-import { primeSpeech, speak, speakSequence, stopSpeaking, setVoiceEnabled, voiceEnabled, speechAvailable, listenOnce, recognitionAvailable, isListening, stopListening, cycleVoice } from './speech.js';
+import { primeSpeech, speak, speakSequence, stopSpeaking, setVoiceEnabled, voiceEnabled, speechAvailable, listenOnce, recognitionAvailable, isListening, stopListening, voiceChoices, selectVoice, currentVoiceName } from './speech.js';
 import { parseUtterance } from './commands.js';
 import { celebrate } from './confetti.js';
 import { tick, chime } from './sounds.js';
@@ -36,7 +36,11 @@ function showScreen(name) {
   $('screen-start').classList.toggle('hidden', name !== 'start');
   $('screen-play').classList.toggle('hidden', name !== 'play');
   $('screen-done').classList.toggle('hidden', name !== 'done');
-  if (name === 'start') refreshSolvedCount();
+  if (name === 'start') {
+    refreshSolvedCount();
+    // Offer to continue a puzzle that's underway
+    $('btn-continue').classList.toggle('hidden', !(puzzle && !solvedAnnounced));
+  }
 }
 
 function refreshSolvedCount() {
@@ -544,6 +548,96 @@ function updatePaging() {
 }
 
 // ---------------------------------------------------------------------------
+// Menu overlay
+// ---------------------------------------------------------------------------
+
+function openMenu() {
+  primeSpeech();
+  // Home button only makes sense while a puzzle is open
+  $('menu-game-section').classList.toggle('hidden',
+    $('screen-play').classList.contains('hidden'));
+  $('menu-help-text').classList.add('hidden');
+  refreshVoiceToggle();
+  populateVoiceList();
+  $('menu-overlay').classList.remove('hidden');
+}
+
+function closeMenu() {
+  $('menu-overlay').classList.add('hidden');
+}
+
+function refreshVoiceToggle() {
+  $('menu-voice-toggle').textContent = voiceEnabled()
+    ? '🔊 Voice is ON — tap to turn off'
+    : '🔇 Voice is OFF — tap to turn on';
+}
+
+async function populateVoiceList() {
+  const box = $('menu-voices');
+  box.textContent = 'Looking for voices…';
+  const choices = await voiceChoices();
+  box.textContent = '';
+  if (choices.length === 0) {
+    box.textContent = 'No voices found on this device.';
+    return;
+  }
+  const current = currentVoiceName();
+  for (const v of choices) {
+    const btn = document.createElement('button');
+    btn.className = 'menu-btn voice-btn' + (v.name === current ? ' voice-current' : '');
+    btn.textContent = (v.name === current ? '✓ ' : '') + v.label +
+      (v.natural ? ' ⭐ natural' : '');
+    btn.addEventListener('click', async () => {
+      await selectVoice(v.name);
+      populateVoiceList(); // refresh checkmarks
+    });
+    box.appendChild(btn);
+  }
+}
+
+function initMenu() {
+  $('btn-menu').addEventListener('click', openMenu);
+  $('btn-start-menu').addEventListener('click', openMenu);
+  $('menu-close').addEventListener('click', closeMenu);
+  $('menu-overlay').addEventListener('click', (e) => {
+    if (e.target === $('menu-overlay')) closeMenu();
+  });
+
+  $('menu-home').addEventListener('click', () => {
+    stopSpeaking();
+    closeMenu();
+    showScreen('start');
+  });
+
+  for (const btn of document.querySelectorAll('.menu-new')) {
+    btn.addEventListener('click', () => {
+      closeMenu();
+      newPuzzle(btn.dataset.diff);
+    });
+  }
+
+  $('menu-voice-toggle').addEventListener('click', () => {
+    const on = !voiceEnabled();
+    setVoiceEnabled(on && speechAvailable());
+    setSetting('voice', on);
+    refreshVoiceToggle();
+    if (voiceEnabled()) speak('Voice is on.');
+  });
+
+  $('menu-instructions').addEventListener('click', () => {
+    if (!$('screen-play').classList.contains('hidden')) {
+      closeMenu();
+      setMessage(HELP_TEXT);
+    } else {
+      const el = $('menu-help-text');
+      el.textContent = HELP_TEXT;
+      el.classList.remove('hidden');
+      speak(HELP_TEXT);
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Wire up UI
 // ---------------------------------------------------------------------------
 
@@ -555,46 +649,23 @@ async function init() {
 
   // Voice on/off (persisted). Priming must happen inside a user gesture (iOS).
   setVoiceEnabled(getSetting('voice', true) && speechAvailable());
-  const voiceBtn = $('btn-voice');
-  function refreshVoiceBtn() {
-    voiceBtn.textContent = voiceEnabled() ? 'Voice: on' : 'Voice: off';
-    voiceBtn.setAttribute('aria-pressed', String(voiceEnabled()));
-  }
-  refreshVoiceBtn();
-  voiceBtn.addEventListener('click', () => {
-    primeSpeech();
-    const on = !voiceEnabled();
-    setVoiceEnabled(on && speechAvailable());
-    setSetting('voice', on);
-    refreshVoiceBtn();
-    if (voiceEnabled()) speak('Voice is on.');
-  });
 
   $('btn-easy').addEventListener('click', () => { primeSpeech(); newPuzzle('easy'); });
   $('btn-medium').addEventListener('click', () => { primeSpeech(); newPuzzle('medium'); });
   $('btn-hard').addEventListener('click', () => { primeSpeech(); newPuzzle('hard'); });
+  $('btn-continue').addEventListener('click', () => { primeSpeech(); showScreen('play'); });
 
   $('btn-talk').addEventListener('click', startTalking);
-  $('btn-help').addEventListener('click', () => { primeSpeech(); setMessage(HELP_TEXT); });
-
-  // Choose-by-ear voice picker (on the start screen)
-  $('btn-voice-pick').addEventListener('click', async () => {
-    primeSpeech();
-    const name = await cycleVoice();
-    $('btn-voice-pick').textContent = name
-      ? `🔈 Voice: ${name.replace(/\(.*\)/, '').trim()} — tap to try another`
-      : '🔈 No voices available';
-  });
   $('btn-read').addEventListener('click', () => { primeSpeech(); readCluesAloud(); });
   $('btn-undo').addEventListener('click', undo);
   $('btn-hint').addEventListener('click', requestHint);
   $('btn-reveal').addEventListener('click', revealOneAnswer);
-  $('btn-quit').addEventListener('click', async () => {
-    stopSpeaking();
-    await clearGame();
-    showScreen('start');
-  });
+
+  // Home keeps the puzzle saved — she can continue any time.
+  $('btn-home').addEventListener('click', () => { stopSpeaking(); showScreen('start'); });
   $('btn-done-home').addEventListener('click', () => showScreen('start'));
+
+  initMenu();
 
   $('btn-prev').addEventListener('click', () => {
     currentPage = (currentPage - 1 + gridApi.pairs.length) % gridApi.pairs.length;

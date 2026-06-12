@@ -150,11 +150,78 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow-press); }
   animation: rise 0.35s ease both;
 }
 
+#play-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.25rem 0 0.6rem;
+}
 #puzzle-title {
   font-size: 1.5rem;
   font-weight: bold;
-  margin: 0.25rem 0 0.6rem;
 }
+#btn-home { font-size: 1.05rem; flex-shrink: 0; }
+
+/* ---------- Menu overlay ---------- */
+
+#menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 46, 0.45);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem;
+  overflow-y: auto;
+}
+#menu-panel {
+  background: var(--card);
+  border: var(--border);
+  border-radius: 1.5rem;
+  box-shadow: 0 12px 40px rgba(26, 26, 46, 0.35);
+  width: 100%;
+  max-width: 28rem;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+  animation: rise 0.25s ease both;
+}
+#menu-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#menu-top h2 { margin: 0; font-size: 1.6rem; }
+.menu-section {
+  border-top: 2px solid #e5e0d5;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+}
+.menu-section h3 { margin: 0 0 0.6rem; font-size: 1.15rem; }
+.menu-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 0.45rem 0;
+  font-size: 1.2rem;
+  padding: 0.75rem 1rem;
+}
+.voice-btn { font-size: 1.1rem; }
+.voice-current {
+  background: #dcfce7;
+  border-color: var(--green-dark);
+  font-weight: bold;
+}
+.menu-tip {
+  font-size: 1rem;
+  background: #fef9e7;
+  border: 2px solid #d9c989;
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  line-height: 1.45;
+}
+#menu-help-text { font-size: 1.1rem; line-height: 1.5; }
 
 /* Speech bubble */
 #message {
@@ -363,7 +430,7 @@ td.cell { padding: 3px; }
     gap: 0 1.25rem;
     align-items: start;
   }
-  #puzzle-title { grid-area: title; }
+  #play-header { grid-area: title; }
   #grid { grid-area: grid; justify-content: flex-start; align-content: start; }
   #message { grid-area: message; }
   #clues { grid-area: clues; }

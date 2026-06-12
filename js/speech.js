@@ -93,6 +93,42 @@ export function currentVoiceName() {
   return chosenVoice ? chosenVoice.name : null;
 }
 
+/**
+ * All offerable voices for the voice menu: American, no novelty voices,
+ * best first. Includes compact voices (so there's always something to pick),
+ * flagged so the UI can label the natural ones.
+ */
+export async function voiceChoices() {
+  if (!speechAvailable()) return [];
+  await ensureVoices();
+  return speechSynthesis.getVoices()
+    .filter(v => v.lang === 'en-US' && !NOVELTY.test(v.name))
+    .sort((a, b) => voiceScore(b) - voiceScore(a))
+    .map(v => ({
+      name: v.name,
+      label: v.name.replace(/\(.*\)/, '').trim(),
+      natural: /premium|enhanced/i.test(v.name),
+    }));
+}
+
+/** Select a voice by exact name, speak a sample, persist the choice. */
+export async function selectVoice(name) {
+  if (!speechAvailable()) return false;
+  await ensureVoices();
+  const v = speechSynthesis.getVoices().find(x => x.name === name);
+  if (!v) return false;
+  chosenVoice = v;
+  try { localStorage.setItem(VOICE_KEY, v.name); } catch {}
+  speechSynthesis.cancel();
+  await new Promise(r => setTimeout(r, 60));
+  const u = new SpeechSynthesisUtterance(
+    `Hello! I'm ${v.name.replace(/\(.*\)/, '').trim()}. I'll read your puzzles from now on.`);
+  u.voice = v;
+  u.rate = 0.92;
+  speechSynthesis.speak(u);
+  return true;
+}
+
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   pickVoice();
   speechSynthesis.addEventListener?.('voiceschanged', pickVoice);
