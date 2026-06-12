@@ -10,6 +10,7 @@ import { saveGame, loadGame, clearGame, requestPersistence, getSetting, setSetti
 import { primeSpeech, speak, speakSequence, stopSpeaking, setVoiceEnabled, voiceEnabled, speechAvailable, listenOnce, recognitionAvailable, isListening, stopListening, cycleVoice } from './speech.js';
 import { parseUtterance } from './commands.js';
 import { celebrate } from './confetti.js';
+import { tick, chime } from './sounds.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -31,9 +32,18 @@ const $ = (id) => document.getElementById(id);
 // ---------------------------------------------------------------------------
 
 function showScreen(name) {
+  $('screen-welcome').classList.toggle('hidden', name !== 'welcome');
   $('screen-start').classList.toggle('hidden', name !== 'start');
   $('screen-play').classList.toggle('hidden', name !== 'play');
   $('screen-done').classList.toggle('hidden', name !== 'done');
+  if (name === 'start') refreshSolvedCount();
+}
+
+function refreshSolvedCount() {
+  const n = getSetting('solvedCount', 0);
+  const el = $('solved-count');
+  el.classList.toggle('hidden', n === 0);
+  if (n > 0) el.textContent = `🌟 You've solved ${n} ${n === 1 ? 'puzzle' : 'puzzles'}!`;
 }
 
 // ---------------------------------------------------------------------------
@@ -67,6 +77,7 @@ export function setMark(a, b, i, j, value) {
   undoStack.push(group);
   gridApi.refresh(marks);
   flashCell($('grid'), a, b, i, j);
+  if (voiceEnabled()) tick();
   autosave();
   checkCompletion();
 }
@@ -168,6 +179,8 @@ async function finishPuzzle() {
   const text = `Wonderful! You solved the ${puzzle.theme.name} puzzle.`;
   $('done-text').textContent = text;
   $('done-id').textContent = `Puzzle ${puzzle.id}`;
+  setSetting('solvedCount', getSetting('solvedCount', 0) + 1);
+  if (voiceEnabled()) chime();
   speak(text);
   await clearGame();
   showScreen('done');
@@ -187,6 +200,28 @@ function setMessage(text, { silent = false } = {}) {
 // ---------------------------------------------------------------------------
 // Voice input — Talk button + intent dispatch
 // ---------------------------------------------------------------------------
+
+const WELCOME_TEXT =
+  "Welcome to Puzzle Talk! Here's how it works. I'll give you a little story " +
+  "and some clues. You figure out who goes with what — and you can do it all " +
+  "just by talking to me. Tap the big blue microphone button, then say things like: " +
+  "Mary doesn't have the cat. I'll mark the puzzle grid for you. " +
+  "If you ever feel stuck, just say: give me a hint. " +
+  "Ready? Pick Easy to try your first puzzle.";
+
+// Gentle nudge if she's been quiet on the play screen for a while.
+const IDLE_NUDGE_MS = 90000;
+let idleTimer = null;
+
+function armIdleNudge() {
+  clearTimeout(idleTimer);
+  if ($('screen-play').classList.contains('hidden') || solvedAnnounced) return;
+  idleTimer = setTimeout(() => {
+    if (!$('screen-play').classList.contains('hidden') && !solvedAnnounced) {
+      setMessage("Take your time — there's no hurry. Whenever you're ready, you can say: read the clues. Or: give me a hint.");
+    }
+  }, IDLE_NUDGE_MS);
+}
 
 const HELP_TEXT =
   "Here's how to play. Every person matches one thing in each group, and the clues " +
@@ -309,6 +344,7 @@ function checkWork() {
 }
 
 function handleUtterance(text) {
+  armIdleNudge();
   const parsed = parseUtterance(text, puzzle.theme);
 
   // Resolve a pending yes/no question first.
@@ -468,12 +504,16 @@ function startPuzzle(p, restoredMarks = null, restoredUndo = null) {
 
   setMessage(p.theme.intro);
   showScreen('play');
+  armIdleNudge();
   autosave();
 }
 
 function newPuzzle(difficulty) {
   setSetting('difficulty', difficulty);
-  const p = generatePuzzle({ difficulty });
+  let p = null;
+  for (let tries = 0; tries < 8 && !p; tries++) {
+    p = generatePuzzle({ difficulty });
+  }
   if (!p) {
     setMessage("Sorry, I had trouble making a puzzle. Please try again.");
     return;
@@ -566,6 +606,17 @@ async function init() {
   });
   window.addEventListener('resize', () => { if (puzzle) updatePaging(); });
 
+  // First-run welcome (one big button; the tap is also the iOS audio unlock)
+  $('btn-welcome').addEventListener('click', () => {
+    primeSpeech();
+    setSetting('welcomed', true);
+    showScreen('start');
+    speak(WELCOME_TEXT);
+  });
+
+  // Idle nudge: any tap or utterance resets the timer
+  document.addEventListener('pointerdown', armIdleNudge);
+
   // Resume saved game?
   let saved = null;
   try { saved = await loadGame(); } catch { /* ignore */ }
@@ -581,7 +632,7 @@ async function init() {
       return;
     }
   }
-  showScreen('start');
+  showScreen(getSetting('welcomed', false) ? 'start' : 'welcome');
 }
 
 init();

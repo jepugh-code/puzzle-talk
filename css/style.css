@@ -50,6 +50,41 @@ button {
 }
 button:active { transform: scale(0.96); box-shadow: var(--shadow-press); }
 
+/* ---------- Welcome screen (first run) ---------- */
+
+#screen-welcome {
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem;
+  text-align: center;
+  animation: rise 0.45s ease both;
+}
+#welcome-emoji {
+  font-size: 5rem;
+  animation: wave 1.6s ease-in-out 2;
+  transform-origin: 70% 70%;
+}
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(16deg); }
+  40% { transform: rotate(-8deg); }
+  60% { transform: rotate(12deg); }
+  80% { transform: rotate(-4deg); }
+}
+#screen-welcome h1 { font-size: 2.1rem; }
+#welcome-text { font-size: 1.3rem; }
+#btn-welcome {
+  margin-top: 1.5rem;
+  width: 100%;
+  padding: 1.3rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, #2f5fe8, var(--blue-dark));
+}
+
 /* ---------- Start screen ---------- */
 
 #screen-start {
@@ -91,6 +126,18 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow-press); }
 #btn-voice-pick {
   margin-top: 1.5rem;
   font-size: 1.05rem;
+}
+
+#solved-count {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: var(--green-dark);
+  background: #dcfce7;
+  border: 2px solid var(--green-dark);
+  border-radius: 2rem;
+  display: inline-block;
+  padding: 0.3rem 1.1rem;
+  margin: 0.2rem 0 0.4rem;
 }
 
 /* ---------- Play screen ---------- */
@@ -251,6 +298,11 @@ td.cell { padding: 3px; }
   border: 4px solid var(--ink);
   flex-shrink: 0;
   box-shadow: 0 6px 18px rgba(29, 78, 216, 0.45);
+  animation: breathe 3.2s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 6px 18px rgba(29, 78, 216, 0.45); }
+  50% { transform: scale(1.04); box-shadow: 0 8px 24px rgba(29, 78, 216, 0.6); }
 }
 #btn-talk.listening {
   background: radial-gradient(circle at 35% 30%, #e25555, #991b1b);

@@ -34,10 +34,17 @@ function voiceScore(v) {
   return s;
 }
 
+// Apple's novelty/effect voices — never offer these.
+const NOVELTY = /albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|grandma|grandpa|junior|kathy|ralph|fred|eddy|flo|reed|rocko|sandy|shelley/i;
+
 function rankedVoices() {
-  return speechSynthesis.getVoices()
-    .filter(v => v.lang && v.lang.startsWith('en'))
+  const american = speechSynthesis.getVoices()
+    .filter(v => v.lang === 'en-US' && !NOVELTY.test(v.name))
     .sort((a, b) => voiceScore(b) - voiceScore(a));
+  // If any Enhanced/Premium voices are installed, offer only those.
+  const best = american.filter(v => /premium|enhanced/i.test(v.name));
+  if (best.length > 0) return best;
+  return american;
 }
 
 function pickVoice() {

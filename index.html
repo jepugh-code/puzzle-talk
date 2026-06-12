@@ -12,9 +12,18 @@
 </head>
 <body>
 
+<!-- First-run welcome screen -->
+<div id="screen-welcome" class="hidden">
+  <div id="welcome-emoji">👋</div>
+  <h1>Welcome to Puzzle Talk!</h1>
+  <p id="welcome-text">A puzzle game you can play just by talking.</p>
+  <button id="btn-welcome">Tap here to begin</button>
+</div>
+
 <!-- Start screen -->
 <div id="screen-start">
   <h1>🧩 Puzzle Talk</h1>
+  <p id="solved-count" class="hidden"></p>
   <p>Pick a puzzle to begin:</p>
   <button id="btn-easy" class="difficulty-btn">Easy
     <small>3 things to match — a gentle start</small></button>
